@@ -1,0 +1,19 @@
+# Dependencies and generated output
+/node_modules/
+/.next/
+/out/
+/build/
+/coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets and local configuration
+.env*
+!.env.example
+!.env.template
+*.pem
+*.key
+
+# Local metadata and logs
+.DS_Store
+npm-debug.log*

@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+build/
+coverage/
+next-env.d.ts
+*.tsbuildinfo
+**/.env*
+**/*.pem
+**/*.key
+.agents/milestones/active.md
+.DS_Store
