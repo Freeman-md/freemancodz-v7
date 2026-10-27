@@ -33,7 +33,7 @@ ESLint catches rule violations; TypeScript checks types; Prettier formats code. 
 - `src/app/layout.tsx` owns the root HTML document, metadata and global stylesheet import.
 - `src/app/page.tsx` renders the neutral homepage. `page.module.css` owns its scoped styles.
 - `src/app/globals.css` contains only application-wide base styles. Future design tokens need separate approval.
-- `next.config.ts` disables automatic framework additions to our curated `AGENTS.md`. `tsconfig.json` enables strict TypeScript; `@/*` resolves into `src/`.
+- `next.config.ts` keeps framework defaults. Next.js maintains its version-specific guidance in `AGENTS.md` alongside the project rules; human instructions and approved scope take precedence. `tsconfig.json` enables strict TypeScript; `@/*` resolves into `src/`.
 - `eslint.config.mjs` combines the Next.js rules, Prettier compatibility and three readability rules: required braces, no nested ternaries and one variable declaration per statement.
 - `.prettierrc.json` selects Prettier's defaults. `.editorconfig` specifies UTF-8, LF endings, two-space indentation and a final newline. The ignore files exclude generated output and secret-bearing files.
 - `.github/workflows/ci.yml` installs from the lockfile and runs `check` and `build` on pull requests and pushes to `main`.
