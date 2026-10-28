@@ -1,5 +1,20 @@
 .main {
-  max-width: 64rem;
+  width: calc(100% - var(--page-gutter) * 2);
+  max-width: var(--content-max-width);
   margin-inline: auto;
-  padding: 3rem 1.5rem;
+  padding-block: var(--space-48);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-section-heading);
+  font-weight: 500;
+  line-height: var(--leading-section-heading);
+  letter-spacing: var(--tracking-section-heading);
+}
+
+.description {
+  margin-block: var(--space-16) 0;
+  color: var(--color-text-muted);
 }

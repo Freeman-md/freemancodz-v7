@@ -1,11 +1,60 @@
-* {
+:root {
+  --color-background: #020c1b;
+  --color-surface: #0a192f;
+  --color-accent: #64ffda;
+  --color-text: #edf2ef;
+  --color-text-display: #e6f1ff;
+  --color-text-muted: #a8b7ca;
+  --color-control-border: #20364a;
+
+  --font-body: var(--font-inter), system-ui, sans-serif;
+  --font-heading: var(--font-manrope), system-ui, sans-serif;
+  --text-section-heading: 1.75rem;
+  --leading-section-heading: 2.25rem;
+  --tracking-section-heading: -0.035em;
+  --text-body: 0.9375rem;
+  --leading-body: 1.5rem;
+  --text-label: 0.875rem;
+  --leading-label: 1.125rem;
+  --text-caption: 0.75rem;
+  --leading-caption: 1.125rem;
+
+  --space-8: 0.5rem;
+  --space-16: 1rem;
+  --space-24: 1.5rem;
+  --space-32: 2rem;
+  --space-48: 3rem;
+  --space-64: 4rem;
+
+  --page-gutter: var(--space-24);
+  --section-gap: var(--space-64);
+  --section-space: calc(var(--section-gap) / 2);
+  --content-max-width: 80rem;
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --text-section-heading: 3rem;
+    --leading-section-heading: 3.75rem;
+    --text-body: 1.0625rem;
+    --leading-body: 1.75rem;
+    --page-gutter: 5rem;
+    --section-gap: 6rem;
+  }
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: #ffffff;
-  color: #171717;
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--leading-body);
 }

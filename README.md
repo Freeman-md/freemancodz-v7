@@ -1,6 +1,6 @@
 # Freemancodz V7
 
-A small Next.js App Router foundation using TypeScript and CSS Modules. The portfolio sections and design system will be implemented through separately approved work.
+A small Next.js App Router foundation using TypeScript and CSS Modules, with shared colour, typography and spacing variables. The portfolio sections and reusable components will be implemented through separately approved work.
 
 ## Run locally
 
@@ -30,9 +30,9 @@ ESLint catches rule violations; TypeScript checks types; Prettier formats code. 
 
 ## File responsibilities
 
-- `src/app/layout.tsx` owns the root HTML document, metadata and global stylesheet import.
+- `src/app/layout.tsx` owns the root HTML document, metadata, font loading and global stylesheet import.
 - `src/app/page.tsx` renders the neutral homepage. `page.module.css` owns its scoped styles.
-- `src/app/globals.css` contains only application-wide base styles. Future design tokens need separate approval.
+- `src/app/globals.css` owns the shared foundation variables and application-wide base styles.
 - `next.config.ts` keeps framework defaults. Next.js maintains its version-specific guidance in `AGENTS.md` alongside the project rules; human instructions and approved scope take precedence. `tsconfig.json` enables strict TypeScript; `@/*` resolves into `src/`.
 - `eslint.config.mjs` combines the Next.js rules, Prettier compatibility and three readability rules: required braces, no nested ternaries and one variable declaration per statement.
 - `.prettierrc.json` selects Prettier's defaults. `.editorconfig` specifies UTF-8, LF endings, two-space indentation and a final newline. The ignore files exclude generated output and secret-bearing files.
@@ -40,6 +40,18 @@ ESLint catches rule violations; TypeScript checks types; Prettier formats code. 
 - `AGENTS.md` supplies the scope, readability and global-skill routing instructions.
 
 Keep component styles in colocated CSS Modules with semantic class names and shallow selectors. Reuse or extract styles when there is a concrete pattern, without building a speculative utility framework. No Tailwind dependency is used.
+
+## Design foundations
+
+Use the variables in `src/app/globals.css` by their purpose: `--color-*` for colour roles, `--font-*` for families, paired `--text-*` and `--leading-*` for type sizes and line heights, and `--space-*` for shared spacing. The two foreground whites preserve the approved distinction between general text and Hero/Contact display text.
+
+`--page-gutter` and `--content-max-width` define the content area. `--section-gap` defines the total space between sections; `--section-space` is half that gap, contributed by each adjoining section. Count the spacing once. These variables establish the contract; the placeholder does not render section wrappers.
+
+The default values are mobile-first, with shared desktop values beginning at `64rem` (1024px at the browser's default root size). Sizes use `rem` and tracking uses `em`; the root font size remains the browser default.
+
+Inter supplies default copy and labels; Manrope supplies headings and other approved section typography. Built-in `next/font/google` downloads the Latin variable fonts during builds and serves them locally to visitors, so builds require network access to the font provider. The root HTML classes expose both font variables to the global stylesheet.
+
+The neutral homepage demonstrates the foundation wiring. Section-specific type sizes, watermark opacity, artwork colours, control treatments and measurements such as the Work grid gap remain local until their sections are implemented. Shared components, light-theme behaviour and motion tokens are deferred.
 
 ## Design and milestones
 
