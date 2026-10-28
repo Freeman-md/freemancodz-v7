@@ -21,6 +21,7 @@
   position: absolute;
   inset: 0;
   background: var(--color-surface);
+  transition: var(--theme-color-transition);
   clip-path: circle(var(--reveal-radius) at var(--reveal-x) var(--reveal-y));
 }
 .scrollArea {
@@ -46,6 +47,7 @@
   min-height: 76px;
   border-radius: 4px;
   color: var(--color-text-display);
+  transition: var(--theme-color-transition);
   font-family: var(--font-heading);
   font-size: 48px;
   font-weight: 500;

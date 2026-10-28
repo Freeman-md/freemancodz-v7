@@ -11,8 +11,15 @@ export function followAnchor(destination: string) {
     return;
   }
 
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
   window.history.pushState(null, "", url.pathname + url.hash);
-  target.scrollIntoView({ behavior: "instant", block: "start" });
+  target.scrollIntoView({
+    behavior: reduceMotion ? "instant" : "smooth",
+    block: "start",
+  });
   target.focus({ preventScroll: true });
 }
 

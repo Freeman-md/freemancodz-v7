@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.use({ viewport: { width: 1440, height: 960 } });
+test.use({ viewport: { width: 1440, height: 960 }, video: "on" });
 
 test("links and logo navigate and focus unobscured destinations", async ({
   page,
@@ -20,7 +20,13 @@ test("links and logo navigate and focus unobscured destinations", async ({
     const target = page.locator(`#${id}`);
     await expect(target).toBeFocused();
     await expect(page).toHaveURL(new RegExp(`#${id}$`));
-    expect((await target.boundingBox())!.y).toBeGreaterThanOrEqual(96);
+    await expect
+      .poll(() =>
+        target.evaluate((element) =>
+          Math.round(element.getBoundingClientRect().top),
+        ),
+      )
+      .toBe(104);
   }
 
   await page
@@ -29,6 +35,13 @@ test("links and logo navigate and focus unobscured destinations", async ({
     .click();
   await expect(page.locator("#top")).toBeFocused();
   await expect(page).toHaveURL(/#top$/);
+  await expect
+    .poll(() =>
+      page
+        .locator("#top")
+        .evaluate((element) => Math.round(element.getBoundingClientRect().top)),
+    )
+    .toBe(104);
 });
 
 test("keyboard skip link reaches main content with visible focus", async ({
@@ -48,4 +61,50 @@ test("keyboard skip link reaches main content with visible focus", async ({
   await expect(skip).toHaveCSS("outline-style", "solid");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
+});
+
+test("anchor journey moves through intermediate positions and reduced motion moves immediately", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("button", { name: "Switch to light theme" }),
+  ).toBeEnabled();
+  await page.evaluate(() => {
+    const positions: number[] = [];
+    Reflect.set(window, "anchorPositions", positions);
+    window.addEventListener("scroll", () => positions.push(window.scrollY));
+  });
+  await page.getByRole("link", { name: "Work", exact: true }).click();
+  await expect(page.locator("#work")).toBeFocused();
+  await expect
+    .poll(() =>
+      page
+        .locator("#work")
+        .evaluate((element) => Math.round(element.getBoundingClientRect().top)),
+    )
+    .toBe(104);
+  const positions = await page.evaluate(
+    () => Reflect.get(window, "anchorPositions") as number[],
+  );
+  expect(new Set(positions).size).toBeGreaterThan(2);
+  expect(
+    positions.some(
+      (position) => position > 0 && position < positions[positions.length - 1],
+    ),
+  ).toBe(true);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const result = await page
+    .getByRole("link", { name: "Let’s talk" })
+    .evaluate((link) => {
+      (link as HTMLAnchorElement).click();
+      const destination = document.getElementById("contact")!;
+      return {
+        top: Math.round(destination.getBoundingClientRect().top),
+        focused: document.activeElement === destination,
+        hash: location.hash,
+      };
+    });
+  expect(result).toEqual({ top: 104, focused: true, hash: "#contact" });
 });

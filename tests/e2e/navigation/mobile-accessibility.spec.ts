@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.use({ viewport: { width: 390, height: 844 } });
+test.use({ viewport: { width: 390, height: 844 }, video: "on" });
 
 test("keyboard opening, hidden links, focus containment, Escape and restoration", async ({
   page,
@@ -76,6 +76,18 @@ test("each destination follows only after modal exit and receives focus", async 
   page,
 }) => {
   await page.goto("/");
+  await page.evaluate(() => {
+    const samples: { position: number; restricted: boolean }[] = [];
+    Reflect.set(window, "mobileAnchorSamples", samples);
+    window.addEventListener("scroll", () =>
+      samples.push({
+        position: scrollY,
+        restricted:
+          !!document.querySelector('[role="dialog"]') ||
+          getComputedStyle(document.body).pointerEvents === "none",
+      }),
+    );
+  });
   for (const [label, id] of [
     ["Work", "work"],
     ["Freeman", "experience"],
@@ -86,14 +98,51 @@ test("each destination follows only after modal exit and receives focus", async 
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByRole("navigation")).not.toHaveAttribute("inert");
     const previousUrl = page.url();
+    const previousPosition = await page.evaluate(() => scrollY);
     await dialog.getByRole("link", { name: label, exact: true }).click();
     await expect(dialog).toBeVisible();
     expect(page.url()).toBe(previousUrl);
+    expect(await page.evaluate(() => scrollY)).toBe(previousPosition);
     await expect(dialog).toBeHidden();
     await expect(page.locator(`#${id}`)).toBeFocused();
     await expect(page).toHaveURL(new RegExp(`#${id}$`));
-    expect(
-      (await page.locator(`#${id}`).boundingBox())!.y,
-    ).toBeGreaterThanOrEqual(90);
+    await expect
+      .poll(() =>
+        page
+          .locator(`#${id}`)
+          .evaluate((element) =>
+            Math.round(element.getBoundingClientRect().top),
+          ),
+      )
+      .toBe(104);
   }
+  const samples = await page.evaluate(
+    () =>
+      Reflect.get(window, "mobileAnchorSamples") as {
+        position: number;
+        restricted: boolean;
+      }[],
+  );
+  expect(samples.length).toBeGreaterThan(4);
+  expect(samples.every((sample) => !sample.restricted)).toBe(true);
+});
+
+test("reduced-motion mobile destination is immediate after modal restrictions release", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("link", { name: "Work", exact: true })
+    .click();
+  await expect(page.locator("#work")).toBeFocused();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(
+    await page
+      .locator("#work")
+      .evaluate((element) => Math.round(element.getBoundingClientRect().top)),
+  ).toBe(104);
+  await expect(page.locator("body")).toHaveCSS("pointer-events", "auto");
 });

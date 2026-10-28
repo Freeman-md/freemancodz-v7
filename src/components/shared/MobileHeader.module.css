@@ -12,6 +12,7 @@
   border: 1px solid var(--color-control-border);
   border-radius: 999px;
   background: var(--color-surface);
+  transition: var(--theme-color-transition);
 }
 
 .controls {
@@ -29,6 +30,7 @@
   border-radius: 50%;
   color: var(--color-text-display);
   background: var(--color-menu-control);
+  transition: var(--theme-color-transition);
   cursor: pointer;
 }
 .menu svg {

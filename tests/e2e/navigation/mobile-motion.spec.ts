@@ -180,3 +180,30 @@ test("desktop breakpoint releases modal and restores visible focus during either
       .toBeGreaterThan(0);
   }
 });
+
+test("paused theme fades cannot hold navigation exit or focus release", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("navigation")).not.toHaveAttribute("inert");
+  await dialog.getByRole("button", { name: "Switch to light theme" }).click();
+  const pausedCount = await dialog.evaluate((element) => {
+    const themeFades = element
+      .getAnimations({ subtree: true })
+      .filter((animation) => animation instanceof CSSTransition);
+    // Hold unrelated work indefinitely: navigation must only await its own keyframes.
+    for (const animation of themeFades) {
+      animation.pause();
+    }
+    return themeFades.length;
+  });
+  expect(pausedCount).toBeGreaterThan(0);
+  await dialog.getByRole("button", { name: "Close navigation" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: "Open navigation" }),
+  ).toBeFocused();
+  await expect(page.locator("body")).toHaveCSS("pointer-events", "auto");
+});

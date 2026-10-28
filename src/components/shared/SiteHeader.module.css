@@ -7,6 +7,7 @@
   transform: translateY(-200%);
   border-radius: 8px;
   background: var(--color-surface);
+  transition: var(--theme-color-transition);
   color: var(--color-text);
 }
 

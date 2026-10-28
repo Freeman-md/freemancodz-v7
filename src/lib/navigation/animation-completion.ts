@@ -5,7 +5,10 @@ export async function observeAnimationCompletion(
 ) {
   // Force style resolution so newly assigned CSS animations appear in getAnimations().
   element.getBoundingClientRect();
-  const animations = element.getAnimations({ subtree: true });
+  // This root owns navigation keyframes. Theme colour/icon fades are CSSTransitions.
+  const animations = element
+    .getAnimations({ subtree: true })
+    .filter((animation) => animation instanceof CSSAnimation);
   let handleAbort: () => void = () => {};
   const aborted = new Promise<false>((resolve) => {
     handleAbort = () => resolve(false);

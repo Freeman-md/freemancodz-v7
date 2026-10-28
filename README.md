@@ -32,14 +32,14 @@ ESLint catches rule violations; TypeScript checks types; Prettier formats code. 
 ## File responsibilities
 
 - `src/app/layout.tsx` owns the root HTML document, metadata, font loading and composition of the single theme provider and site header.
-- `src/app/page.tsx` renders the neutral introduction and temporary Work, Experience and Contact anchors. These intentionally plain sections provide scrolling and focus targets until their content milestones replace them; `page.module.css` owns their styles.
+- `src/app/page.tsx` renders the neutral introduction and temporary Work, Experience and Contact anchors. These intentionally plain sections provide scrolling and focus targets until their content milestones replace them. Anchors scroll smoothly, or immediately under reduced motion; mobile journeys begin after modal exit. `page.module.css` owns the section styles.
 - `src/app/globals.css` owns the shared foundation variables and application-wide base styles.
 - `next.config.ts` keeps framework defaults. Next.js maintains its version-specific guidance in `AGENTS.md` alongside the project rules; human instructions and approved scope take precedence. `tsconfig.json` enables strict TypeScript; `@/*` resolves into `src/`.
 - `eslint.config.mjs` combines the Next.js rules, Prettier compatibility and three readability rules: required braces, no nested ternaries and one variable declaration per statement.
 - `.prettierrc.json` selects Prettier's defaults. `.editorconfig` specifies UTF-8, LF endings, two-space indentation and a final newline. The ignore files exclude generated output and secret-bearing files.
 - `src/components/shared/` owns the shell presentation, with PascalCase components and matching CSS Modules directly in that directory. `SiteHeader` composes desktop/mobile navigation; `MobileHeader` is reused inside the modal.
-- `src/providers/ThemeProvider.tsx` configures `next-themes`; `src/hooks/use-theme-toggle.ts` supplies hydration-safe control state. The default is dark regardless of device preference, with choices saved under `freemancodz-v7-theme`. CSS selects logo/icons from the before-paint root attribute.
-- `src/hooks/use-mobile-navigation.ts` owns navigation phases and lifecycle; `src/config/navigation.ts` owns destinations/breakpoint. Non-React geometry, CSS animation observation and destination focus live in `src/lib/navigation/`. CSS owns timings; Radix stays open until the exit completes.
+- `src/providers/ThemeProvider.tsx` configures `next-themes`; `src/hooks/use-theme-toggle.ts` supplies hydration-safe control state. The default is dark regardless of device preference, with choices saved under `freemancodz-v7-theme`. Saved preferences render immediately; colour transitions (200ms) and Sun/Moon crossfades (180ms) enable after hydration and turn off for reduced motion. CSS selects logo/icons from the before-paint root attribute.
+- `src/hooks/use-mobile-navigation.ts` owns navigation phases and lifecycle; `src/config/navigation.ts` owns destinations/breakpoint. Non-React geometry, CSS animation observation and destination focus live in `src/lib/navigation/`. CSS owns timings; the observer waits only for navigation keyframes, so theme colour/icon fades do not delay exit. Radix stays open until the exit completes.
 - `.github/workflows/ci.yml` runs `check`, `build` and the browser suite on pull requests and pushes to `main`, retaining browser evidence.
 - `AGENTS.md` supplies the scope, readability and global-skill routing instructions.
 
@@ -81,3 +81,5 @@ npm run test:e2e
 Tests use Playwright fixtures directly, grouped under `tests/e2e/{theme,navigation,header}`. They cover startup before hydration, storage failure, anchor focus, modal accessibility through exit, interrupted/reduced motion, responsive cleanup, geometry and backdrop rendering. Patterned backdrop content exists only in its test fixture. Screenshots are attached to the HTML report under `playwright-report/`; failures retain screenshots and traces in `test-results/`. CI installs Chromium/WebKit with system dependencies and uploads browser evidence. These generated directories are ignored.
 
 The logo assets under `public/images/brand/` preserve the approved Paper SVG paths; the light variant changes only the colours.
+
+M01 contract version 2 uses inspected representative backdrop captures instead of PNG-byte inequality. Chromium visibly demonstrates blur. WebKit checks cover configuration, readability, controls and opaque fallback; its blur appearance remains **unverified**, an explicitly approved cosmetic limitation. Playwright WebKit captures do not verify actual Safari blur.

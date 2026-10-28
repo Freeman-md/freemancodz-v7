@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+test.use({ video: "on" });
+
 for (const theme of ["light", "dark"]) {
   test(`saved ${theme} appearance is correct before hydration`, async ({
     page,
@@ -34,6 +36,17 @@ for (const theme of ["light", "dark"]) {
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const toggle = page.getByRole("button", { name: "Switch to light theme" });
     await expect(toggle).toBeDisabled();
+    expect(
+      await page
+        .locator("body")
+        .evaluate((element) => element.getAnimations({ subtree: true }).length),
+    ).toBe(0);
+    await expect(
+      toggle.locator(theme === "light" ? "svg.lucide-moon" : "svg.lucide-sun"),
+    ).toHaveCSS("opacity", "1");
+    await expect(
+      toggle.locator(theme === "light" ? "svg.lucide-sun" : "svg.lucide-moon"),
+    ).toHaveCSS("opacity", "0");
     await expect(page.locator("body")).toHaveCSS(
       "background-color",
       theme === "light" ? "rgb(247, 248, 250)" : "rgb(2, 12, 27)",
@@ -44,7 +57,7 @@ for (const theme of ["light", "dark"]) {
       .locator("span")
       .evaluateAll((elements) =>
         elements
-          .filter((element) => getComputedStyle(element).display !== "none")
+          .filter((element) => getComputedStyle(element).opacity !== "0")
           .map((element) => getComputedStyle(element).backgroundImage),
       );
     expect(logoBackgrounds).toHaveLength(1);
@@ -80,6 +93,73 @@ for (const theme of ["light", "dark"]) {
       }),
     ).toBeEnabled();
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    expect(
+      await page.evaluate(
+        () =>
+          document
+            .getAnimations()
+            .filter((animation) => animation instanceof CSSTransition).length,
+      ),
+    ).toBe(0);
     expect(errors).toEqual([]);
   });
 }
+
+test("hydrated colours and icons transition in place, while reduced motion switches immediately", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: /Switch to .* theme/ });
+  await expect(toggle).toBeEnabled();
+  const bounds = await toggle.boundingBox();
+  await toggle.click();
+  const transitions = await page.evaluate(() =>
+    document
+      .getAnimations()
+      .filter((animation) => animation instanceof CSSTransition)
+      .map((animation) => ({
+        property: (animation as CSSTransition).transitionProperty,
+        duration: animation.effect!.getTiming().duration,
+      })),
+  );
+  expect(
+    transitions.some(
+      (animation) =>
+        animation.property === "background-color" && animation.duration === 200,
+    ),
+  ).toBe(true);
+  expect(
+    transitions.filter(
+      (animation) =>
+        animation.property === "opacity" && animation.duration === 180,
+    ),
+  ).toHaveLength(4);
+  expect(await toggle.boundingBox()).toEqual(bounds);
+  await testInfo.attach("theme-changing", {
+    body: await page.screenshot(),
+    contentType: "image/png",
+  });
+  await expect(page.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(247, 248, 250)",
+  );
+  await expect(toggle.locator("svg.lucide-moon")).toHaveCSS("opacity", "1");
+  await expect(toggle.locator("svg.lucide-sun")).toHaveCSS("opacity", "0");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await toggle.click();
+  await expect(page.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(2, 12, 27)",
+  );
+  await expect(toggle.locator("svg.lucide-sun")).toHaveCSS("opacity", "1");
+  expect(
+    await page.evaluate(
+      () =>
+        document
+          .getAnimations()
+          .filter((animation) => animation instanceof CSSTransition).length,
+    ),
+  ).toBe(0);
+  expect(await toggle.boundingBox()).toEqual(bounds);
+});
