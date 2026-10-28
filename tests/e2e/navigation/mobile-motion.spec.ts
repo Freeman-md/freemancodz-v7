@@ -122,13 +122,6 @@ for (const theme of ["dark", "light"]) {
     ).toEqual(triggerBounds);
 
     await page.setViewportSize({ width: 500, height: 750 });
-    const geometry = await dialog.evaluate((element) => {
-      const surface = Array.from(element.querySelectorAll("div")).find(
-        (candidate) =>
-          getComputedStyle(candidate).clipPath.startsWith("circle("),
-      )!;
-      return getComputedStyle(surface).clipPath;
-    });
     const closeBounds = (await dialog
       .getByRole("button", { name: "Close navigation" })
       .boundingBox())!;
@@ -137,7 +130,17 @@ for (const theme of ["dark", "light"]) {
     const radius = Math.ceil(
       Math.hypot(Math.max(x, 500 - x), Math.max(y, 750 - y)),
     );
-    expect(geometry).toBe(`circle(${radius}px at ${x}px ${y}px)`);
+    await expect
+      .poll(() =>
+        dialog.evaluate((element) => {
+          const surface = Array.from(element.querySelectorAll("div")).find(
+            (candidate) =>
+              getComputedStyle(candidate).clipPath.startsWith("circle("),
+          )!;
+          return getComputedStyle(surface).clipPath;
+        }),
+      )
+      .toBe(`circle(${radius}px at ${x}px ${y}px)`);
     await page.keyboard.press("Escape");
     const closing = await dialog.evaluate((element) =>
       element

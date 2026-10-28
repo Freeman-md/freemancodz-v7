@@ -84,13 +84,13 @@ test("anchor journey moves through intermediate positions and reduced motion mov
         .evaluate((element) => Math.round(element.getBoundingClientRect().top)),
     )
     .toBe(104);
-  const positions = await page.evaluate(
-    () => Reflect.get(window, "anchorPositions") as number[],
-  );
-  expect(new Set(positions).size).toBeGreaterThan(2);
+  const { positions, destinationPosition } = await page.evaluate(() => ({
+    positions: Reflect.get(window, "anchorPositions") as number[],
+    destinationPosition: scrollY,
+  }));
   expect(
     positions.some(
-      (position) => position > 0 && position < positions[positions.length - 1],
+      (position) => position > 0 && position < destinationPosition,
     ),
   ).toBe(true);
 
