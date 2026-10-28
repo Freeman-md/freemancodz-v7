@@ -1,0 +1,84 @@
+.header {
+  position: fixed;
+  z-index: 30;
+  top: var(--header-top);
+  left: var(--header-left);
+  right: var(--header-right);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 58px;
+  padding: 6px 6px 6px 15px;
+  border: 1px solid var(--color-control-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.menu {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--color-control-border);
+  border-radius: 50%;
+  color: var(--color-text-display);
+  background: var(--color-menu-control);
+  cursor: pointer;
+}
+.menu svg {
+  transform: rotate(0deg);
+}
+.header[data-active="true"] .menu svg {
+  animation: turn-open 240ms both;
+}
+.header[data-closing="true"] .menu svg {
+  animation: turn-close 240ms 240ms both;
+}
+
+@keyframes turn-open {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(45deg);
+  }
+}
+@keyframes turn-close {
+  from {
+    transform: var(--closing-rotation, rotate(45deg));
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@supports (
+  (backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))
+) {
+  .header {
+    background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+}
+
+@media (min-width: 64rem) {
+  .header {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header[data-active="true"] .menu svg {
+    animation: none;
+    transform: rotate(45deg);
+  }
+  .header[data-closing="true"] .menu svg {
+    transform: rotate(0deg);
+  }
+}

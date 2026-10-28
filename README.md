@@ -1,6 +1,6 @@
 # Freemancodz V7
 
-A small Next.js App Router foundation using TypeScript and CSS Modules, with shared colour, typography and spacing variables. The portfolio sections and reusable components will be implemented through separately approved work.
+A Next.js App Router portfolio shell using TypeScript and CSS Modules, with persistent dark/light themes and accessible desktop/mobile navigation. Portfolio content will follow through separately approved milestones.
 
 ## Run locally
 
@@ -24,19 +24,23 @@ Open [localhost:3000](http://localhost:3000). Stop the development server before
 | `npm run typecheck`    | Generates route types, then checks TypeScript without emitting JavaScript.       |
 | `npm run format`       | Applies Prettier formatting.                                                     |
 | `npm run format:check` | Checks formatting without changing files.                                        |
+| `npm run test:e2e`     | Exercises the production shell in Chromium and WebKit on port 3100.              |
 | `npm run check`        | Runs format checking, linting and type checking.                                 |
 
-ESLint catches rule violations; TypeScript checks types; Prettier formats code. They do not prove that a feature behaves correctly. Meaningful behavioural tests will be introduced with the features they protect.
+ESLint catches rule violations; TypeScript checks types; Prettier formats code. They do not prove that a feature behaves correctly. Playwright exercises the production shell in Chromium and WebKit.
 
 ## File responsibilities
 
-- `src/app/layout.tsx` owns the root HTML document, metadata, font loading and global stylesheet import.
-- `src/app/page.tsx` renders the neutral homepage. `page.module.css` owns its scoped styles.
+- `src/app/layout.tsx` owns the root HTML document, metadata, font loading and composition of the single theme provider and site header.
+- `src/app/page.tsx` renders the neutral introduction and temporary Work, Experience and Contact anchors. These intentionally plain sections provide scrolling and focus targets until their content milestones replace them; `page.module.css` owns their styles.
 - `src/app/globals.css` owns the shared foundation variables and application-wide base styles.
 - `next.config.ts` keeps framework defaults. Next.js maintains its version-specific guidance in `AGENTS.md` alongside the project rules; human instructions and approved scope take precedence. `tsconfig.json` enables strict TypeScript; `@/*` resolves into `src/`.
 - `eslint.config.mjs` combines the Next.js rules, Prettier compatibility and three readability rules: required braces, no nested ternaries and one variable declaration per statement.
 - `.prettierrc.json` selects Prettier's defaults. `.editorconfig` specifies UTF-8, LF endings, two-space indentation and a final newline. The ignore files exclude generated output and secret-bearing files.
-- `.github/workflows/ci.yml` installs from the lockfile and runs `check` and `build` on pull requests and pushes to `main`.
+- `src/components/shared/` owns the shell presentation, with PascalCase components and matching CSS Modules directly in that directory. `SiteHeader` composes desktop/mobile navigation; `MobileHeader` is reused inside the modal.
+- `src/providers/ThemeProvider.tsx` configures `next-themes`; `src/hooks/use-theme-toggle.ts` supplies hydration-safe control state. The default is dark regardless of device preference, with choices saved under `freemancodz-v7-theme`. CSS selects logo/icons from the before-paint root attribute.
+- `src/hooks/use-mobile-navigation.ts` owns navigation phases and lifecycle; `src/config/navigation.ts` owns destinations/breakpoint. Non-React geometry, CSS animation observation and destination focus live in `src/lib/navigation/`. CSS owns timings; Radix stays open until the exit completes.
+- `.github/workflows/ci.yml` runs `check`, `build` and the browser suite on pull requests and pushes to `main`, retaining browser evidence.
 - `AGENTS.md` supplies the scope, readability and global-skill routing instructions.
 
 Keep component styles in colocated CSS Modules with semantic class names and shallow selectors. Reuse or extract styles when there is a concrete pattern, without building a speculative utility framework. No Tailwind dependency is used.
@@ -45,13 +49,13 @@ Keep component styles in colocated CSS Modules with semantic class names and sha
 
 Use the variables in `src/app/globals.css` by their purpose: `--color-*` for colour roles, `--font-*` for families, paired `--text-*` and `--leading-*` for type sizes and line heights, and `--space-*` for shared spacing. The two foreground whites preserve the approved distinction between general text and Hero/Contact display text.
 
-`--page-gutter` and `--content-max-width` define the content area. `--section-gap` defines the total space between sections; `--section-space` is half that gap, contributed by each adjoining section. Count the spacing once. These variables establish the contract; the placeholder does not render section wrappers.
+`--page-gutter` and `--content-max-width` define the content area. `--section-gap` defines the total space between sections; `--section-space` is half that gap, contributed by each adjoining section. Count the spacing once. The temporary anchor sections provide one viewport of vertical space each.
 
 The default values are mobile-first, with shared desktop values beginning at `64rem` (1024px at the browser's default root size). Sizes use `rem` and tracking uses `em`; the root font size remains the browser default.
 
 Inter supplies default copy and labels; Manrope supplies headings and other approved section typography. Built-in `next/font/google` downloads the Latin variable fonts during builds and serves them locally to visitors, so builds require network access to the font provider. The root HTML classes expose both font variables to the global stylesheet.
 
-The neutral homepage demonstrates the foundation wiring. Section-specific type sizes, watermark opacity, artwork colours, control treatments and measurements such as the Work grid gap remain local until their sections are implemented. Shared components, light-theme behaviour and motion tokens are deferred.
+The neutral homepage demonstrates the foundation wiring. Section-specific type sizes, watermark opacity, artwork colours, control treatments and measurements such as the Work grid gap remain local until their sections are implemented. The shell adds the approved light palette and component-owned motion.
 
 ## Design and milestones
 
@@ -61,4 +65,19 @@ Ask for `milestone-authoring` to turn an approved plan into a contract. **Run Ac
 
 The active contract is locally excluded through Git's `info/exclude`. The authoring skill prepares that exclusion in each new checkout; this bootstrap does not create an active contract.
 
-Commits follow Conventional Commits. Ordinary commits and pushes require authorization. This foundation includes no deployment, backend, assistant integration or test framework.
+Commits follow Conventional Commits. Ordinary commits and pushes require authorization. This shell includes no deployment, backend or assistant integration.
+
+## Browser verification
+
+```bash
+npx playwright install chromium webkit
+npm run check
+npm run build
+npm run test:e2e
+```
+
+`npm run test:e2e` invokes Playwright against a managed production server on dedicated port 3100. Stop `next dev` before building its shared `.next` directory. The test server never reuses an existing server. Run one group with `npm run test:e2e -- tests/e2e/navigation`.
+
+Tests use Playwright fixtures directly, grouped under `tests/e2e/{theme,navigation,header}`. They cover startup before hydration, storage failure, anchor focus, modal accessibility through exit, interrupted/reduced motion, responsive cleanup, geometry and backdrop rendering. Patterned backdrop content exists only in its test fixture. Screenshots are attached to the HTML report under `playwright-report/`; failures retain screenshots and traces in `test-results/`. CI installs Chromium/WebKit with system dependencies and uploads browser evidence. These generated directories are ignored.
+
+The logo assets under `public/images/brand/` preserve the approved Paper SVG paths; the light variant changes only the colours.

@@ -6,6 +6,12 @@
   --color-text-display: #e6f1ff;
   --color-text-muted: #a8b7ca;
   --color-control-border: #20364a;
+  --color-menu-control: #10243a;
+
+  --header-top: max(16px, env(safe-area-inset-top));
+  --header-left: max(12px, env(safe-area-inset-left));
+  --header-right: max(12px, env(safe-area-inset-right));
+  color-scheme: dark;
 
   --font-body: var(--font-inter), system-ui, sans-serif;
   --font-heading: var(--font-manrope), system-ui, sans-serif;
@@ -57,4 +63,40 @@ body {
   font-size: var(--text-body);
   font-weight: 400;
   line-height: var(--leading-body);
+}
+
+[data-theme="light"] {
+  --color-background: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-text: #020c1b;
+  --color-text-display: #020c1b;
+  --color-text-muted: #596271;
+  --color-accent: #087d69;
+  --color-control-border: #dce1e9;
+  --color-menu-control: #f7f8fa;
+  color-scheme: light;
+}
+
+html {
+  background: var(--color-background);
+  scroll-padding-top: calc(var(--header-top) + 88px);
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  font: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+@media (orientation: landscape) and (max-height: 30rem) and (max-width: 63.999rem) {
+  :root {
+    --header-top: max(24px, env(safe-area-inset-top));
+    --header-left: max(44px, env(safe-area-inset-left));
+    --header-right: max(44px, env(safe-area-inset-right));
+  }
 }

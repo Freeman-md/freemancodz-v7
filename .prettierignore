@@ -10,3 +10,6 @@ next-env.d.ts
 **/*.key
 .agents/milestones/active.md
 .DS_Store
+
+/playwright-report/
+/test-results/

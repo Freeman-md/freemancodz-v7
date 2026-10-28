@@ -22,12 +22,18 @@ Human instructions and the approved scope take precedence over the framework gui
 - Colocate component-specific CSS Modules with their owner. Keep global CSS for application-wide base styles and future approved tokens. Prefer shallow selectors; avoid unused declarations, repeated overrides and speculative utility classes.
 - Before finishing, review naming, logical grouping, control flow, responsibility boundaries and CSS ownership. Automated checks do not replace this review.
 
+## Shell ownership and naming
+
+- Shared components live directly in `src/components/shared/`, beside matching PascalCase CSS Modules; providers use PascalCase files in `src/providers/`.
+- Hooks use kebab-case filenames in `src/hooks/` and `useCamelCase` exports. Shared configuration lives in `src/config/`; non-React navigation operations live in `src/lib/navigation/`, with lowercase hyphenated filenames.
+- Components own presentation, hooks coordinate interactive state and lifecycle, and CSS owns motion timing. Keep `layout.tsx` and `page.tsx` as Server Components.
+
 ## Verification and safety
 
 - Use npm and Node 22.x. Run `npm run check` and `npm run build` before reporting completion; add appropriate browser and behavioural verification when implementing features.
 - `npm run format` applies formatting. Linting, type checking and builds are supplementary checks, not behavioural tests. Do not add a placeholder test command.
 - Never read, inspect, print or copy `.env`, `.env.local` or other secret-bearing files. Non-secret example files may be inspected. Never expose credentials or dump environment variables.
-- Keep design-system components, portfolio sections and integrations out of scope until separately approved. The approved Paper composition is linked in the README; its source pages hold the motion specifications.
+- Keep additional design-system components, portfolio sections and integrations out of scope until separately approved. The approved Paper composition is linked in the README; its source pages hold the motion specifications.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
