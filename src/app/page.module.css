@@ -2,7 +2,7 @@
   width: calc(100% - var(--page-gutter) * 2);
   max-width: var(--content-max-width);
   margin-inline: auto;
-  padding-block: var(--space-48);
+  padding-top: calc(var(--header-top) + 104px);
 }
 
 .title {
@@ -17,4 +17,9 @@
 .description {
   margin-block: var(--space-16) 0;
   color: var(--color-text-muted);
+  transition: var(--theme-color-transition);
+}
+
+.section {
+  min-height: 100svh;
 }

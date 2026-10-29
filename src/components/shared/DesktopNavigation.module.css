@@ -1,0 +1,57 @@
+.header {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .header {
+    position: fixed;
+    z-index: 10;
+    top: var(--header-top);
+    left: max(5rem, env(safe-area-inset-left));
+    right: max(5rem, env(safe-area-inset-right));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding: 8px 24px;
+    border: 1px solid var(--color-control-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    transition: var(--theme-color-transition);
+  }
+
+  .navigation {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+  .navigation a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--color-text-muted);
+    transition: var(--theme-color-transition);
+    font-size: 13px;
+    line-height: 16px;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  .navigation a:last-of-type {
+    color: var(--color-text-display);
+  }
+  .navigation a:hover {
+    color: var(--color-accent);
+  }
+}
+
+@supports (
+  (backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))
+) {
+  .header {
+    background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+}

@@ -17,3 +17,6 @@ next-env.d.ts
 # Local metadata and logs
 .DS_Store
 npm-debug.log*
+
+/playwright-report/
+/test-results/

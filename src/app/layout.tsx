@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { SiteHeader } from "@/components/shared/SiteHeader";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+
 import "./globals.css";
 
 const inter = Inter({
@@ -27,8 +30,18 @@ type RootLayoutProps = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable}`}>
-      <body>{children}</body>
+    <html
+      lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
+      className={`${inter.variable} ${manrope.variable}`}
+    >
+      <body>
+        <ThemeProvider>
+          <SiteHeader />
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
