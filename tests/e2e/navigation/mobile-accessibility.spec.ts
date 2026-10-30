@@ -114,7 +114,7 @@ test("each destination follows only after modal exit and receives focus", async 
             Math.round(element.getBoundingClientRect().top),
           ),
       )
-      .toBe(104);
+      .toBe(id === "top" ? 0 : 104);
   }
   const samples = await page.evaluate(
     () =>

@@ -2,6 +2,7 @@
   --color-background: #020c1b;
   --color-surface: #0a192f;
   --color-accent: #64ffda;
+  --color-on-accent: #020c1b;
   --color-text: #edf2ef;
   --color-text-display: #e6f1ff;
   --color-text-muted: #a8b7ca;
@@ -75,6 +76,7 @@ body {
   --color-text-display: #020c1b;
   --color-text-muted: #596271;
   --color-accent: #087d69;
+  --color-on-accent: #ffffff;
   --color-control-border: #dce1e9;
   --color-menu-control: #f7f8fa;
   color-scheme: light;
