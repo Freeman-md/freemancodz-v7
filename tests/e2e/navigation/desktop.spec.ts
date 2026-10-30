@@ -41,7 +41,7 @@ test("links and logo navigate and focus unobscured destinations", async ({
         .locator("#top")
         .evaluate((element) => Math.round(element.getBoundingClientRect().top)),
     )
-    .toBe(104);
+    .toBe(0);
 });
 
 test("keyboard skip link reaches main content with visible focus", async ({

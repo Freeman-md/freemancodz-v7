@@ -7,7 +7,8 @@ Human instructions and the approved scope take precedence over the framework gui
 - Implement only the approved plan or milestone. Propose material additions before implementing them.
 - Use the global `cohesive-architecture` skill for meaningful code and configuration changes. Reference it rather than duplicating its architecture rules here.
 - Use the global `milestone-authoring` skill when asked to create or revise an approved milestone.
-- Use the global `milestone-workflow` skill for **Run Active Milestone**. Read the current working copy's `.agents/milestones/active.md`; only the human merges.
+- Use the global `milestone-workflow` skill for **Run Active Milestone** or **Resume Active Milestone**. Both inspect the current working copy's `.agents/milestones/active.md` and existing PR evidence; resume preserves the branch, PR and review count. Only the human merges.
+- Use the same skill for **Sync After Merge** to verify the active contract's merged PR and fast-forward/switch to its base while preserving local changes. This command does not start implementation, commit, push or delete branches.
 - Keep the active contract locally ignored through Git's `info/exclude`, not the project `.gitignore`. Do not create a placeholder contract or run milestones for ordinary setup work.
 - Preserve unrelated work. Ordinary commits and pushes require explicit authorization; an authorized milestone follows its skill's Git workflow. Use Conventional Commits, such as `feat: add project filters` or `chore: initialize Next.js workspace`.
 
@@ -24,6 +25,7 @@ Human instructions and the approved scope take precedence over the framework gui
 
 ## Shell ownership and naming
 
+- Page sections live in `src/components/sections/` with matching CSS Modules; keep section composition server-rendered and add client boundaries only for interaction.
 - Shared components live directly in `src/components/shared/`, beside matching PascalCase CSS Modules; providers use PascalCase files in `src/providers/`.
 - Hooks use kebab-case filenames in `src/hooks/` and `useCamelCase` exports. Shared configuration lives in `src/config/`; non-React navigation operations live in `src/lib/navigation/`, with lowercase hyphenated filenames.
 - Components own presentation, hooks coordinate interactive state and lifecycle, and CSS owns motion timing. Keep `layout.tsx` and `page.tsx` as Server Components.

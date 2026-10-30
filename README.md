@@ -1,6 +1,6 @@
 # Freemancodz V7
 
-A Next.js App Router portfolio shell using TypeScript and CSS Modules, with persistent dark/light themes and accessible desktop/mobile navigation. Portfolio content will follow through separately approved milestones.
+A Next.js App Router portfolio shell using TypeScript and CSS Modules, with persistent dark/light themes and accessible desktop/mobile navigation. The approved responsive hero introduces Freeman; remaining portfolio sections will follow through separately approved milestones.
 
 ## Run locally
 
@@ -31,12 +31,14 @@ ESLint catches rule violations; TypeScript checks types; Prettier formats code. 
 
 ## File responsibilities
 
-- `src/app/layout.tsx` owns the root HTML document, metadata, font loading and composition of the single theme provider and site header.
-- `src/app/page.tsx` renders the neutral introduction and temporary Work, Experience and Contact anchors. These intentionally plain sections provide scrolling and focus targets until their content milestones replace them. Anchors scroll smoothly, or immediately under reduced motion; mobile journeys begin after modal exit. `page.module.css` owns the section styles.
+- `src/app/layout.tsx` owns the root HTML document, metadata, font loading and composition of the single theme provider, site header and disabled floating assistant.
+- `src/app/page.tsx` composes the server-rendered Hero and temporary Work, Experience and Contact anchors. These intentionally plain sections provide scrolling and focus targets until their content milestones replace them. Anchors scroll smoothly, or immediately under reduced motion; mobile journeys begin after modal exit. `page.module.css` constrains the remaining placeholder sections. The logo returns to the actual page-top hero section.
 - `src/app/globals.css` owns the shared foundation variables and application-wide base styles.
 - `next.config.ts` keeps framework defaults. Next.js maintains its version-specific guidance in `AGENTS.md` alongside the project rules; human instructions and approved scope take precedence. `tsconfig.json` enables strict TypeScript; `@/*` resolves into `src/`.
 - `eslint.config.mjs` combines the Next.js rules, Prettier compatibility and three readability rules: required braces, no nested ternaries and one variable declaration per statement.
 - `.prettierrc.json` selects Prettier's defaults. `.editorconfig` specifies UTF-8, LF endings, two-space indentation and a final newline. The ignore files exclude generated output and secret-bearing files.
+- `src/components/sections/Hero.tsx` owns hero copy, reserved entrance slots and lower labels. Colocated CSS owns its finite entrance sequence and responsive layout. `HeroPortrait` is the small client boundary; `use-hero-scroll.ts` updates its separate scroll layer through one scheduled animation frame, without React renders on scroll. Reduced motion bypasses entrance and scroll effects, including preference changes during a visit.
+- `src/components/shared/ActionLink.tsx` owns the pill link and intercepts only existing same-page targets through the navigation helper. Other destinations and modified clicks retain native behaviour. `AssistantButton` is a single disabled presentation control; it has no panel, state or backend.
 - `src/components/shared/` owns the shell presentation, with PascalCase components and matching CSS Modules directly in that directory. `SiteHeader` composes desktop/mobile navigation; `MobileHeader` is reused inside the modal.
 - `src/providers/ThemeProvider.tsx` configures `next-themes`; `src/hooks/use-theme-toggle.ts` supplies hydration-safe control state. The default is dark regardless of device preference, with choices saved under `freemancodz-v7-theme`. Saved preferences render immediately; colour transitions (200ms) and Sun/Moon crossfades (180ms) enable after hydration and turn off for reduced motion. CSS selects logo/icons from the before-paint root attribute.
 - `src/hooks/use-mobile-navigation.ts` owns navigation phases and lifecycle; `src/config/navigation.ts` owns destinations/breakpoint. Non-React geometry, CSS animation observation and destination focus live in `src/lib/navigation/`. CSS owns timings; the observer waits only for navigation keyframes, so theme colour/icon fades do not delay exit. Radix stays open until the exit completes.
@@ -55,13 +57,13 @@ The default values are mobile-first, with shared desktop values beginning at `64
 
 Inter supplies default copy and labels; Manrope supplies headings and other approved section typography. Built-in `next/font/google` downloads the Latin variable fonts during builds and serves them locally to visitors, so builds require network access to the font provider. The root HTML classes expose both font variables to the global stylesheet.
 
-The neutral homepage demonstrates the foundation wiring. Section-specific type sizes, watermark opacity, artwork colours, control treatments and measurements such as the Work grid gap remain local until their sections are implemented. The shell adds the approved light palette and component-owned motion.
+The hero uses the approved Paper typography and naturally proportioned transparent slope-v3 portrait, stored under `public/images/hero/`. Desktop crops its lower edge; mobile clothing reaches the hero bottom. Only the portrait scales and brightens with normal scrolling. Section-specific type sizes, watermark opacity, artwork colours, control treatments and measurements such as the Work grid gap remain local until their sections are implemented. The shell adds the approved light palette and component-owned motion.
 
 ## Design and milestones
 
 The approved [Paper landing-page composition](https://app.paper.design/file/01M5VJC7VWD8F9QYARYR43X33M/p-8-0) provides the visual reference. Pages 01–07 preserve the individual sections and motion storyboards.
 
-Ask for `milestone-authoring` to turn an approved plan into a contract. **Run Active Milestone** invokes `milestone-workflow` against this checkout's `.agents/milestones/active.md`; only the human merges.
+Ask for `milestone-authoring` to turn an approved plan into a contract. **Run Active Milestone** or **Resume Active Milestone** invokes `milestone-workflow` against this checkout's `.agents/milestones/active.md`; only the human merges. **Sync After Merge** verifies the merged PR and synchronizes the base without starting new work.
 
 The active contract is locally excluded through Git's `info/exclude`. The authoring skill prepares that exclusion in each new checkout; this bootstrap does not create an active contract.
 
@@ -78,7 +80,7 @@ npm run test:e2e
 
 `npm run test:e2e` invokes Playwright against a managed production server on dedicated port 3100. Stop `next dev` before building its shared `.next` directory. The test server never reuses an existing server. Run one group with `npm run test:e2e -- tests/e2e/navigation`.
 
-Tests use Playwright fixtures directly, grouped under `tests/e2e/{theme,navigation,header}`. They cover startup before hydration, storage failure, anchor focus, modal accessibility through exit, interrupted/reduced motion, responsive cleanup, geometry and backdrop rendering. Patterned backdrop content exists only in its test fixture. Screenshots are attached to the HTML report under `playwright-report/`; failures retain screenshots and traces in `test-results/`. CI installs Chromium/WebKit with system dependencies and uploads browser evidence. These generated directories are ignored.
+Tests use Playwright fixtures directly, grouped under `tests/e2e/{theme,navigation,header,hero}`. Hero cases cover initial HTML/no-JavaScript availability, focus, responsive composition, staged entrances, reversible scrolling and reduced-motion changes. Representative captures and sequence videos accompany the browser report. They cover startup before hydration, storage failure, anchor focus, modal accessibility through exit, interrupted/reduced motion, responsive cleanup, geometry and backdrop rendering. Patterned backdrop content exists only in its test fixture. Screenshots are attached to the HTML report under `playwright-report/`; failures retain screenshots and traces in `test-results/`. CI installs Chromium/WebKit with system dependencies and uploads browser evidence. These generated directories are ignored.
 
 The logo assets under `public/images/brand/` preserve the approved Paper SVG paths; the light variant changes only the colours.
 

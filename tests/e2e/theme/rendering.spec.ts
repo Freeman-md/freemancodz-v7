@@ -31,7 +31,9 @@ for (const theme of ["light", "dark"]) {
     });
     await page.goto("/", { waitUntil: "commit" });
     await expect(
-      page.getByRole("heading", { name: "Freemancodz V7" }),
+      page.getByRole("heading", {
+        name: "From first click. To a job well done.",
+      }),
     ).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const toggle = page.getByRole("button", { name: "Switch to light theme" });
@@ -39,7 +41,12 @@ for (const theme of ["light", "dark"]) {
     expect(
       await page
         .locator("body")
-        .evaluate((element) => element.getAnimations({ subtree: true }).length),
+        .evaluate(
+          (element) =>
+            element
+              .getAnimations({ subtree: true })
+              .filter((animation) => animation instanceof CSSTransition).length,
+        ),
     ).toBe(0);
     await expect(
       toggle.locator(theme === "light" ? "svg.lucide-moon" : "svg.lucide-sun"),
