@@ -12,10 +12,7 @@ export function Hero() {
     >
       <div className={styles.introduction}>
         <h1 id="hero-heading" className={styles.headline}>
-          <span className={styles.firstLine}>
-            From first click.
-            <span aria-hidden="true" className={styles.caret} />
-          </span>{" "}
+          <span className={styles.firstLine}>From first click.</span>{" "}
           <span className={styles.secondLine}>To a job well done.</span>
         </h1>
         <p className={styles.description}>

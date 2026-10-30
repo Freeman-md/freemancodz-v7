@@ -35,21 +35,7 @@
 }
 
 .firstLine {
-  position: relative;
-  width: fit-content;
-  margin-inline: auto;
   animation: fade 400ms ease-out both;
-}
-
-.caret {
-  position: absolute;
-  top: 15%;
-  right: -0.12em;
-  width: 2px;
-  height: 75%;
-  background: var(--color-accent);
-  opacity: 0;
-  animation: caret 400ms step-end;
 }
 
 .secondLine {
@@ -130,15 +116,6 @@
   }
 }
 
-@keyframes caret {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
 @keyframes impact {
   from {
     opacity: 0;
@@ -205,8 +182,7 @@
 .hero[data-entrance-complete] .secondLine,
 .hero[data-entrance-complete] .description,
 .hero[data-entrance-complete] .action,
-.hero[data-entrance-complete] .labels,
-.hero[data-entrance-complete] .caret {
+.hero[data-entrance-complete] .labels {
   animation: none;
 }
 
@@ -215,8 +191,7 @@
   .secondLine,
   .description,
   .action,
-  .labels,
-  .caret {
+  .labels {
     animation: none;
   }
 }
