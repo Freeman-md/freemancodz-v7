@@ -28,6 +28,9 @@ export function useWorkReveal(
     const headerElements = elements.filter(
       (element) => element.dataset.workReveal !== "card",
     );
+    const controls = section.querySelector<HTMLElement>(
+      '[data-work-reveal="controls"]',
+    )!;
     const keyFor = (element: HTMLElement) =>
       element.dataset.revealId ?? element.dataset.workReveal!;
 
@@ -66,11 +69,24 @@ export function useWorkReveal(
       }
     }
 
+    // Restoration can hydrate below a heading that never intersected this observer.
+    if (headingGroup.getBoundingClientRect().bottom <= 0) {
+      hasTriggeredHeading.current = true;
+      headerElements.forEach(complete);
+    }
+
     const observer = new IntersectionObserver((entries) => {
       let cardIndex = 0;
       const headingEntered = entries.some(
         (entry) => entry.target === headingGroup && entry.isIntersecting,
       );
+      const controlsEntered = entries.some(
+        (entry) => entry.target === controls && entry.isIntersecting,
+      );
+      if (!hasTriggeredHeading.current && controlsEntered && !headingEntered) {
+        hasTriggeredHeading.current = true;
+        headerElements.forEach(complete);
+      }
       if (headingEntered && !hasTriggeredHeading.current) {
         hasTriggeredHeading.current = true;
         for (const element of headerElements) {
@@ -78,7 +94,11 @@ export function useWorkReveal(
         }
       }
       for (const entry of entries) {
-        if (!entry.isIntersecting || entry.target === headingGroup) {
+        if (
+          !entry.isIntersecting ||
+          entry.target === headingGroup ||
+          entry.target === controls
+        ) {
           continue;
         }
         const card = entry.target as HTMLElement;
@@ -92,6 +112,7 @@ export function useWorkReveal(
 
     if (!hasTriggeredHeading.current) {
       observer.observe(headingGroup);
+      observer.observe(controls);
     }
     for (const card of cards) {
       if (!completed.current.has(keyFor(card))) {

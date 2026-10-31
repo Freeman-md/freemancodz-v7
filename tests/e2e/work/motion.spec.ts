@@ -174,17 +174,30 @@ test("rapid reversal, resize and reduced-motion changes cancel stale movement an
   await group
     .getByRole("button", { name: "Explorations", exact: true })
     .click();
+  // Hold the real reflow so natural completion cannot masquerade as resize cancellation.
+  const movingCards = await page
+    .locator("[data-project-id]")
+    .evaluateAll((elements) => {
+      const animations = elements.flatMap((element) => element.getAnimations());
+      animations.forEach((animation) => {
+        animation.playbackRate = 0;
+      });
+      return animations.length;
+    });
+  expect(movingCards).toBeGreaterThan(0);
   await page.setViewportSize({ width: 820, height: 1180 });
-  expect(
-    await page
-      .locator("[data-project-id]")
-      .evaluateAll(
-        (elements) =>
-          elements
-            .flatMap((element) => element.getAnimations())
-            .filter((animation) => animation.playState === "running").length,
-      ),
-  ).toBe(0);
+  await expect
+    .poll(() =>
+      page
+        .locator("[data-project-id]")
+        .evaluateAll(
+          (elements) =>
+            elements
+              .flatMap((element) => element.getAnimations())
+              .filter((animation) => animation.playState === "running").length,
+        ),
+    )
+    .toBe(0);
   await group.getByRole("button", { name: "All", exact: true }).click();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect
@@ -238,4 +251,81 @@ test("reduced motion initially and absent IntersectionObserver keep all content 
   for (const element of await page.locator("[data-work-reveal]").all()) {
     await expect(element).toHaveCSS("opacity", "1");
   }
+});
+
+test("restored scroll before hydration reveals controls without revisiting the heading", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("http://localhost:3100/work", async (route) => {
+    const response = await route.fetch();
+    const html = await response.text();
+    await route.fulfill({
+      response,
+      body: html.replace(
+        /<script([^>]*\bsrc="[^"]+"[^>]*)>/g,
+        '<script type="text/plain" data-delayed-work-hydration$1>',
+      ),
+    });
+  });
+  await page.goto("/work");
+  const group = page.locator("[data-work-heading]");
+  await group.evaluate((element) =>
+    scrollTo(0, scrollY + element.getBoundingClientRect().bottom + 5),
+  );
+  const controls = page
+    .getByRole("group", { name: "Filter projects" })
+    .locator("..");
+  expect(
+    await group.evaluate((element) => element.getBoundingClientRect().bottom),
+  ).toBeLessThan(0);
+  expect((await controls.boundingBox())!.y).toBeGreaterThan(0);
+  await page.evaluate(() => {
+    for (const original of document.querySelectorAll<HTMLScriptElement>(
+      "script[data-delayed-work-hydration]",
+    )) {
+      const script = document.createElement("script");
+      for (const attribute of Array.from(original.attributes)) {
+        if (
+          attribute.name !== "type" &&
+          attribute.name !== "data-delayed-work-hydration"
+        ) {
+          script.setAttribute(attribute.name, attribute.value);
+        }
+      }
+      original.replaceWith(script);
+    }
+  });
+  await expect(
+    page.getByRole("button", { name: "All", exact: true }),
+  ).toBeEnabled();
+  await expect(controls).toHaveCSS("opacity", "1");
+  expect(
+    await group.evaluate((element) => element.getBoundingClientRect().bottom),
+  ).toBeLessThan(0);
+  await testInfo.attach("restored-scroll-controls-visible", {
+    body: await page.screenshot(),
+    contentType: "image/png",
+  });
+});
+
+test("a fast jump past the home heading cannot strand controls in a pending reveal", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(
+    page.getByRole("button", { name: "All", exact: true }),
+  ).toBeEnabled();
+  const group = page.locator("[data-work-heading]");
+  expect((await group.boundingBox())!.y).toBeGreaterThan(844);
+  await group.evaluate((element) =>
+    scrollTo(0, scrollY + element.getBoundingClientRect().bottom + 5),
+  );
+  await expect(
+    page.getByRole("group", { name: "Filter projects" }).locator(".."),
+  ).toHaveCSS("opacity", "1");
+  expect(
+    await group.evaluate((element) => element.getBoundingClientRect().bottom),
+  ).toBeLessThan(0);
 });
