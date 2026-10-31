@@ -1,0 +1,89 @@
+.art {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(140deg, #1b3031, #101b22);
+  color: #edf2ef;
+  font-family: system-ui, sans-serif;
+}
+.mail,
+.record {
+  position: absolute;
+  padding: 2.46cqw;
+  border: 1px solid #91b5aa30;
+  border-radius: 8px;
+  background: #1c2b32;
+}
+.mail {
+  top: 15.9%;
+  left: 6%;
+  right: 10.8%;
+}
+.mail > span,
+.record > span {
+  display: block;
+  color: #a0b8ae;
+  font-size: 2.7cqw;
+  line-height: 1.4;
+}
+.mail > strong {
+  display: block;
+  margin-top: 1.48cqw;
+  font-size: 3.2cqw;
+  line-height: 1.4;
+  font-weight: 400;
+}
+.mail > small {
+  display: block;
+  margin-top: 1.48cqw;
+  color: #a3b6ad;
+  font-size: 2.46cqw;
+  line-height: 1.4;
+}
+.thread {
+  position: absolute;
+  top: 44.7%;
+  left: 50%;
+  width: 1px;
+  height: 6.6%;
+  background: #64ffda77;
+}
+.record {
+  top: 51.3%;
+  left: 9.85%;
+  right: 6%;
+  border-color: #64ffda30;
+}
+.record > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 1.97cqw;
+  font-size: 2.95cqw;
+  line-height: 1.4;
+}
+.record strong {
+  padding: 2px 6px;
+  border-radius: 12px;
+  background: #64ffda13;
+  color: #64ffda;
+  font-size: 2.46cqw;
+  font-weight: 400;
+}
+.record > small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1.97cqw;
+  color: #9ab9a8;
+  font-size: 2.46cqw;
+  line-height: 1.4;
+}
+.caption {
+  position: absolute;
+  left: 6%;
+  bottom: 8px;
+  color: #9bb4aa;
+  font-size: clamp(7px, 2.22cqw, 10px);
+  line-height: 1.4;
+}
