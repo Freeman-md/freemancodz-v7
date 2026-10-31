@@ -25,7 +25,7 @@ Human instructions and the approved scope take precedence over the framework gui
 
 ## Shell ownership and naming
 
-- Page sections live in `src/components/sections/` with matching CSS Modules; keep section composition server-rendered and add client boundaries only for interaction.
+- Group section components and matching CSS Modules under `src/components/sections/<section>/`, such as `hero/`; keep section composition server-rendered and add client boundaries only for interaction.
 - Shared components live directly in `src/components/shared/`, beside matching PascalCase CSS Modules; providers use PascalCase files in `src/providers/`.
 - Hooks use kebab-case filenames in `src/hooks/` and `useCamelCase` exports. Shared configuration lives in `src/config/`; non-React navigation operations live in `src/lib/navigation/`, with lowercase hyphenated filenames.
 - Components own presentation, hooks coordinate interactive state and lifecycle, and CSS owns motion timing. Keep `layout.tsx` and `page.tsx` as Server Components.
