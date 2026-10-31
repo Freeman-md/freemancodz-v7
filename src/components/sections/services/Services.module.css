@@ -1,0 +1,85 @@
+.section {
+  --service-row-delay: 350;
+  --service-row-stagger: 60;
+  width: calc(100% - var(--page-gutter) * 2);
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-block: var(--section-space);
+}
+.heading h2 {
+  top: 15px;
+}
+.heading [data-section-part="watermark"] {
+  top: 0;
+}
+.section[data-services-reveal] [data-service-state="pending"] {
+  opacity: 0;
+}
+.section [data-section-part="watermark"][data-service-state="active"] {
+  animation: fade 300ms ease-out both;
+}
+.section [data-section-part="heading"][data-service-state="active"] {
+  animation: descend 400ms 150ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.section [data-service-row][data-service-state="active"] {
+  animation: arrive 450ms var(--service-delay, 0ms)
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.section [data-service-row]:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes descend {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (min-width: 64rem) {
+  .heading h2 {
+    top: 70px;
+  }
+  .heading [data-section-part="watermark"] {
+    top: -2px;
+  }
+}
+@media (max-width: 22.5rem) {
+  .heading h2 {
+    top: 12px;
+    font-size: 1.375rem;
+    line-height: 1.75rem;
+  }
+  .heading [data-section-part="watermark"] {
+    font-size: 2.25rem;
+    line-height: 2.75rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section[data-services-reveal] [data-service-state] {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
