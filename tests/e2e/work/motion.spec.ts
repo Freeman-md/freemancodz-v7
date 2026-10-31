@@ -25,7 +25,9 @@ test("initial header/card entrances overlap in order, reserve geometry and compl
       const roles = ["watermark", "heading", "controls", "card"];
       return roles.map((role) =>
         Array.from(
-          section.querySelectorAll(`[data-work-reveal='${role}']`),
+          section.querySelectorAll(
+            `[${role === "watermark" || role === "heading" ? "data-section-part" : "data-work-reveal"}='${role}']`,
+          ),
         ).map((element) => {
           const animation = element.getAnimations()[0];
           return animation
@@ -216,7 +218,10 @@ test("rapid reversal, resize and reduced-motion changes cancel stale movement an
     await group.getByRole("button", { name: label, exact: true }).click();
   }
   await expect(page.locator("a[target='_blank']")).toHaveCount(8);
-  for (const element of await page.locator("[data-work-reveal]").all()) {
+  for (const element of await page
+    .locator('section[aria-labelledby="work"]')
+    .locator("[data-work-reveal], [data-section-part]")
+    .all()) {
     await expect(element).toHaveCSS("opacity", "1");
   }
 });
@@ -226,7 +231,10 @@ test("reduced motion initially and absent IntersectionObserver keep all content 
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/work");
-  for (const element of await page.locator("[data-work-reveal]").all()) {
+  for (const element of await page
+    .locator('section[aria-labelledby="work"]')
+    .locator("[data-work-reveal], [data-section-part]")
+    .all()) {
     await expect(element).toHaveCSS("opacity", "1");
   }
   await expect(
@@ -248,7 +256,10 @@ test("reduced motion initially and absent IntersectionObserver keep all content 
     Reflect.deleteProperty(window, "IntersectionObserver");
   });
   await page.reload();
-  for (const element of await page.locator("[data-work-reveal]").all()) {
+  for (const element of await page
+    .locator('section[aria-labelledby="work"]')
+    .locator("[data-work-reveal], [data-section-part]")
+    .all()) {
     await expect(element).toHaveCSS("opacity", "1");
   }
 });
@@ -269,7 +280,9 @@ test("restored scroll before hydration reveals controls without revisiting the h
     });
   });
   await page.goto("/work");
-  const group = page.locator("[data-work-heading]");
+  const group = page.locator(
+    'section[aria-labelledby="work"] [data-section-heading]',
+  );
   await group.evaluate((element) =>
     scrollTo(0, scrollY + element.getBoundingClientRect().bottom + 5),
   );
@@ -317,7 +330,9 @@ test("a fast jump past the home heading cannot strand controls in a pending reve
   await expect(
     page.getByRole("button", { name: "All", exact: true }),
   ).toBeEnabled();
-  const group = page.locator("[data-work-heading]");
+  const group = page.locator(
+    'section[aria-labelledby="work"] [data-section-heading]',
+  );
   expect((await group.boundingBox())!.y).toBeGreaterThan(844);
   await group.evaluate((element) =>
     scrollTo(0, scrollY + element.getBoundingClientRect().bottom + 5),
