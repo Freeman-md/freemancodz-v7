@@ -1,0 +1,62 @@
+.art {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5.9cqw;
+  padding: 12cqw 6cqw 5.4cqw;
+  background: #e4e8ed;
+  color: #1e303c;
+  font-family: system-ui, sans-serif;
+}
+.art > strong {
+  font-size: clamp(18px, 5cqw, 26px);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.route {
+  display: flex;
+  align-items: center;
+  gap: 3cqw;
+}
+.mail {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 10.8cqw;
+  height: 10.8cqw;
+  border-radius: 12px;
+  background: #fff9;
+}
+.route > i {
+  flex: 1;
+  height: 1px;
+  background: #93a1ae;
+}
+.route > svg {
+  flex: none;
+}
+.draft {
+  display: grid;
+  padding: 2.46cqw 3cqw;
+  border-radius: 6px;
+  background: #f8fafc;
+  box-shadow: 0 10px 20px -10px #7c8b9955;
+}
+.draft b {
+  font-size: clamp(9px, 2.95cqw, 12px);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.draft small {
+  font-size: clamp(8px, 2.46cqw, 10px);
+  color: #627581;
+  line-height: 1.5;
+}
+.art > small {
+  font-size: clamp(8px, 2.46cqw, 10px);
+  letter-spacing: 0.06em;
+  color: #5c6e7b;
+}

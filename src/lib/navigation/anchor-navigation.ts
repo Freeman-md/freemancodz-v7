@@ -3,8 +3,20 @@ type AnchorClickEvent = Pick<
   "button" | "metaKey" | "ctrlKey" | "shiftKey" | "altKey" | "preventDefault"
 > & { currentTarget: HTMLAnchorElement };
 
+function isSameDocument(url: URL) {
+  return (
+    url.origin === location.origin &&
+    url.pathname === location.pathname &&
+    url.search === location.search
+  );
+}
+
 export function followAnchor(destination: string) {
   const url = new URL(destination, window.location.href);
+  if (!isSameDocument(url)) {
+    window.location.assign(url.href);
+    return;
+  }
   const target = document.getElementById(url.hash.slice(1));
 
   if (!target) {
@@ -15,7 +27,7 @@ export function followAnchor(destination: string) {
     "(prefers-reduced-motion: reduce)",
   ).matches;
 
-  window.history.pushState(null, "", url.pathname + url.hash);
+  window.history.pushState(null, "", url.pathname + url.search + url.hash);
   target.scrollIntoView({
     behavior: reduceMotion ? "instant" : "smooth",
     block: "start",
@@ -30,6 +42,15 @@ export function handleAnchorClick(event: AnchorClickEvent) {
     event.ctrlKey ||
     event.shiftKey ||
     event.altKey
+  ) {
+    return;
+  }
+
+  const destination = new URL(event.currentTarget.href);
+  if (
+    !isSameDocument(destination) ||
+    !destination.hash ||
+    !document.getElementById(destination.hash.slice(1))
   ) {
     return;
   }

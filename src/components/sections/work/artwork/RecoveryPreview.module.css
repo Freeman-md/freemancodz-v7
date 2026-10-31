@@ -1,0 +1,48 @@
+.art {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4.43cqw;
+  padding: 12cqw 6cqw 5.4cqw;
+  background: #172824;
+  color: #d9eee3;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+}
+.art > svg {
+  flex: none;
+  color: #86c6a8;
+}
+.art > strong {
+  font-size: clamp(18px, 5cqw, 26px);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.art > small {
+  font-size: clamp(8px, 2.46cqw, 10px);
+  color: #9cbeae;
+}
+.checkpoints {
+  display: flex;
+  gap: 29px;
+}
+.checkpoints i {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8ac6a6;
+}
+.checkpoints i:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 7px;
+  width: 22px;
+  height: 1px;
+  background: #446b59;
+}

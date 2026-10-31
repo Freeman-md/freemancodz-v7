@@ -1,0 +1,116 @@
+.card {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 16%, transparent);
+  border-radius: 12px;
+  background: #111c22;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: var(--theme-color-transition);
+}
+:global([data-theme="light"]) .card {
+  background: var(--color-surface);
+}
+.visual {
+  position: relative;
+  border-radius: 11px 11px 0 0;
+  overflow: clip;
+}
+.classification {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 4px 11px;
+  border: 1px solid #aec7bd55;
+  border-radius: 20px;
+  background: #080d12dd;
+  color: #edf2ef;
+  font-size: 0.625rem;
+  line-height: 0.875rem;
+}
+.arrow {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #edf2ef;
+  color: #020c1b;
+  transition:
+    opacity 200ms ease-out,
+    transform 250ms ease-out;
+}
+.metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  padding: 20px;
+}
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 5px;
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.625rem;
+  letter-spacing: -0.025em;
+}
+.description {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  transition: var(--theme-color-transition);
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  line-height: 1rem;
+  transition: var(--theme-color-transition);
+}
+.tags li {
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 16%, transparent);
+  border-radius: 20px;
+}
+@media (min-width: 48rem) {
+  .metadata {
+    padding: 23px 24px;
+  }
+  .heading {
+    font-size: 1.125rem;
+    line-height: 1.6875rem;
+  }
+}
+@media (min-width: 64rem) and (hover: hover) and (pointer: fine) {
+  .arrow {
+    right: 16px;
+    bottom: 16px;
+    width: 36px;
+    height: 36px;
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  .card:hover .arrow,
+  .card:focus-visible .arrow {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+    transform: none;
+  }
+}
