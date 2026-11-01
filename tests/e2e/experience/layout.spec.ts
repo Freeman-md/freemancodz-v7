@@ -5,6 +5,8 @@ for (const viewport of [
   { width: 390, height: 844 },
   { width: 820, height: 1180 },
   { width: 320, height: 844 },
+  { width: 360, height: 844 },
+  { width: 365, height: 844 },
 ]) {
   for (const theme of viewport.width === 1440 || viewport.width === 390
     ? ["dark", "light"]
@@ -71,9 +73,21 @@ for (const viewport of [
         roleSize = "14px";
         dateSize = "12px";
       }
-      await expect(heading).toHaveCSS("font-size", headingSize);
+      if (viewport.width >= 360 && viewport.width < 390) {
+        headingSize = String(26 + (viewport.width - 360) / 15);
+        summarySize = String(13 + (viewport.width - 360) / 30);
+      }
+      expect(
+        await heading.evaluate((element) =>
+          parseFloat(getComputedStyle(element).fontSize),
+        ),
+      ).toBeCloseTo(parseFloat(headingSize), 3);
       await expect(watermark).toHaveCSS("font-size", watermarkSize);
-      await expect(summary).toHaveCSS("font-size", summarySize);
+      expect(
+        await summary.evaluate((element) =>
+          parseFloat(getComputedStyle(element).fontSize),
+        ),
+      ).toBeCloseTo(parseFloat(summarySize), 3);
       await expect(summary).toHaveCSS("white-space", "nowrap");
       let summaryHeight = 20;
       let rowHeight = 111;

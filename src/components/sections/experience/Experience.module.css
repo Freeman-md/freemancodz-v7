@@ -82,6 +82,15 @@
     line-height: 1.5rem;
   }
 }
+/* Ease into the 390px type sizes without crowding the two foreground items at 360px. */
+@media (min-width: 22.5rem) and (max-width: 24.374rem) {
+  .heading h2 {
+    font-size: calc(6.6666666667vw + 0.125rem);
+  }
+  .summary {
+    font-size: calc(3.3333333333vw + 0.0625rem);
+  }
+}
 @media (max-width: 22.499rem) {
   .heading h2 {
     top: 12px;
