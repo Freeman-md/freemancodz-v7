@@ -160,11 +160,7 @@ export function useTestimonialScroll(
     void document.fonts.ready.then(scheduleUpdate);
 
     return () => {
-      if (quote.isConnected && !hasLayoutChanged(measureLayout())) {
-        progress.current = clamp(
-          (window.scrollY - intervalStart) / intervalLength,
-        );
-      }
+      // Retain synchronized progress; selection mutations can move the viewport.
       isActive = false;
       observer.disconnect();
       window.removeEventListener("scroll", scheduleUpdate);

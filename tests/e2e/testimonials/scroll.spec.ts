@@ -534,6 +534,10 @@ test("reduced motion overrides colour and switching immediately, then resumes cu
     .evaluate((button: HTMLButtonElement) => button.click());
   await settle(section);
   expect(await progress(section)).toBe(1);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect.poll(() => progress(section)).toBeCloseTo(0.3, 2);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect.poll(() => progress(section)).toBe(1);
   const length = await section
     .getByRole("blockquote")
     .evaluate(
