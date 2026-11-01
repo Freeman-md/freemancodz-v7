@@ -94,7 +94,10 @@ for (const viewport of viewports) {
         body: await page.screenshot(),
         contentType: "image/png",
       });
-      await page.evaluate(() => window.scrollTo(0, 300));
+      await page.evaluate(() =>
+        window.scrollTo({ top: 300, behavior: "instant" }),
+      );
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(300);
       expect(await header.boundingBox()).toEqual(bounds);
 
       if (!desktop) {

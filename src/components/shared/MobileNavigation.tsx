@@ -46,7 +46,7 @@ export function MobileNavigation() {
           aria-describedby={undefined}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
-            closeRef.current?.focus();
+            closeRef.current?.focus({ preventScroll: true });
           }}
           onCloseAutoFocus={handleCloseAutoFocus}
           onEscapeKeyDown={(event) => {
