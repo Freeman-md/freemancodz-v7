@@ -49,6 +49,8 @@
 }
 .stage {
   position: relative;
+  /* Changing figures must not become the browser's page-scroll anchor. */
+  overflow-anchor: none;
 }
 .carousel[data-testimonials-enhanced="true"] .stage {
   height: var(--testimonial-height);

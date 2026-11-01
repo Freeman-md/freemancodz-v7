@@ -315,6 +315,96 @@ test("height animation holds reading progress while resize, fonts and preceding 
   await expect.poll(() => progress(section)).toBeCloseTo(0.35, 2);
 });
 
+test("forward and reverse wheel scrolling during height growth preserve genuine displacement", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const section = await openSection(page);
+  const next = section.getByRole("button", { name: "Next testimonial" });
+  for (const direction of [1, -1]) {
+    await seekGeometric(page, section, 0.3);
+    await expect.poll(() => progress(section)).toBeCloseTo(0.3, 2);
+    const retained = await progress(section);
+    const initialPosition = await page.evaluate(() => scrollY);
+    await next.evaluate((button: HTMLButtonElement) => button.click());
+    await expect(section.getByRole("status")).toHaveText(
+      "Matin Adebayo, testimonial 2 of 2",
+    );
+    const length = await section
+      .getByRole("blockquote")
+      .evaluate(
+        (element) =>
+          parseFloat(getComputedStyle(element).height) + 0.4 * innerHeight,
+      );
+    expect(
+      await section
+        .locator("[data-testimonial-stage]")
+        .evaluate((element) =>
+          element
+            .getAnimations()
+            .some(
+              (animation) =>
+                animation instanceof CSSTransition &&
+                animation.transitionProperty === "height" &&
+                animation.playState === "running",
+            ),
+        ),
+    ).toBe(true);
+    for (let index = 0; index < 10; index++) {
+      await page.mouse.wheel(0, direction * 20);
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) =>
+            requestAnimationFrame(() => resolve()),
+          ),
+      );
+    }
+    const displacement = (await page.evaluate(() => scrollY)) - initialPosition;
+    expect(displacement * direction).toBeGreaterThan(100);
+    const expected = Math.max(0, Math.min(1, retained + displacement / length));
+    await settle(section);
+    await expect.poll(() => progress(section)).toBeCloseTo(expected, 2);
+    await next.evaluate((button: HTMLButtonElement) => button.click());
+    await settle(section);
+    await page.reload();
+    await expect(next).toBeEnabled();
+    await section
+      .getByRole("heading", { level: 2 })
+      .evaluate((element) => element.focus({ preventScroll: true }));
+    await settle(section);
+  }
+});
+
+test("viewport clamping during a stationary long-to-short switch does not change retained colour", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const section = await openSection(page);
+  await seekGeometric(page, section, 0);
+  await expect.poll(() => progress(section)).toBeCloseTo(0, 2);
+  const next = section.getByRole("button", { name: "Next testimonial" });
+  await next.evaluate((button: HTMLButtonElement) => button.click());
+  await settle(section);
+  const length = await section
+    .getByRole("blockquote")
+    .evaluate(
+      (element) =>
+        parseFloat(getComputedStyle(element).height) + 0.4 * innerHeight,
+    );
+  await page.evaluate(
+    (delta) => scrollBy({ top: delta, behavior: "instant" }),
+    length,
+  );
+  await expect.poll(() => progress(section)).toBeCloseTo(1, 2);
+  const before = await page.evaluate(() => scrollY);
+  await next.evaluate((button: HTMLButtonElement) => button.click());
+  await settle(section);
+  expect(await page.evaluate(() => scrollY)).toBeLessThan(before);
+  await expect.poll(() => progress(section)).toBeCloseTo(1, 2);
+  await page.evaluate(() => scrollBy({ top: -80, behavior: "instant" }));
+  await expect.poll(() => progress(section)).toBeLessThan(0.95);
+});
+
 test("layout changes before arrival preserve the quotation-local reading interval", async ({
   page,
 }) => {

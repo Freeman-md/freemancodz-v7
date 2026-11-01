@@ -44,7 +44,6 @@ export function useTestimonialScroll(
         top: documentTop(quote),
         height: parseFloat(getComputedStyle(quote).height),
         viewport: window.innerHeight,
-        stageHeight: parseFloat(getComputedStyle(stage).height),
       };
     }
 
@@ -59,13 +58,15 @@ export function useTestimonialScroll(
       );
     }
     previousQuote.current = quote;
+    let previousPosition = window.scrollY;
+    let previousLimit =
+      document.documentElement.scrollHeight - window.innerHeight;
 
     function hasLayoutChanged(next: typeof layout) {
       return (
         next.top !== layout.top ||
         next.height !== layout.height ||
-        next.viewport !== layout.viewport ||
-        next.stageHeight !== layout.stageHeight
+        next.viewport !== layout.viewport
       );
     }
 
@@ -115,14 +116,25 @@ export function useTestimonialScroll(
         return;
       }
       const next = measureLayout();
+      const position = window.scrollY;
+      const nextLimit =
+        document.documentElement.scrollHeight - window.innerHeight;
       if (hasLayoutChanged(next)) {
-        // Resize/height animation rebases held progress; it is not a reading gesture.
+        // Only settled quote/viewport geometry changes the reading interval.
         synchronizeLayout(next);
+      } else if (
+        Math.abs(position - nextLimit) <= 1 &&
+        (previousPosition > nextLimit ||
+          (nextLimit !== previousLimit &&
+            Math.abs(previousPosition - previousLimit) <= 1))
+      ) {
+        // Browsers clamp or pin the viewport to a changing document end.
+        intervalStart = position - progress.current * intervalLength;
       } else {
-        progress.current = clamp(
-          (window.scrollY - intervalStart) / intervalLength,
-        );
+        progress.current = clamp((position - intervalStart) / intervalLength);
       }
+      previousPosition = position;
+      previousLimit = nextLimit;
       paintWords();
     }
 
