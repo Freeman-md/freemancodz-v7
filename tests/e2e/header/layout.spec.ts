@@ -94,6 +94,16 @@ for (const viewport of viewports) {
         body: await page.screenshot(),
         contentType: "image/png",
       });
+      await page
+        .locator('section[aria-labelledby="hero-heading"]')
+        .evaluate(async (element) => {
+          await Promise.allSettled(
+            element
+              .getAnimations({ subtree: true })
+              .filter((animation) => animation instanceof CSSAnimation)
+              .map((animation) => animation.finished),
+          );
+        });
       await page.evaluate(() =>
         window.scrollTo({ top: 300, behavior: "instant" }),
       );

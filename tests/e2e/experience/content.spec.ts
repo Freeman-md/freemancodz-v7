@@ -53,6 +53,7 @@ test("exact employment history, fixed summary, unique heading and static semanti
     "work",
     "services-title",
     "experience",
+    "testimonials",
     "contact",
   ]);
 });
