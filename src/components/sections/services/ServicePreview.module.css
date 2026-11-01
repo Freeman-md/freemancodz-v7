@@ -1,0 +1,55 @@
+.selection {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #91b5aa40;
+  border-radius: 8px;
+  transform: rotate(3deg);
+}
+.workflow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #91b5aa30;
+  border-radius: 12px;
+  background: #101b22;
+  color: #edf2ef;
+  font-family: var(--font-heading);
+  transform: rotate(-3deg);
+}
+.workflow span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px;
+  border-radius: 6px;
+  background: #1c2b32;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+.workflow svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: #64ffda;
+}
+.workflow svg:last-child:not(:first-child) {
+  width: 12px;
+  height: 12px;
+}
+.workflow i {
+  flex: none;
+  width: 1px;
+  height: 12px;
+  background: #64ffda66;
+}
+@media (min-width: 48rem) {
+  .workflow {
+    padding: 12px;
+  }
+  .workflow span {
+    padding: 10px 15px;
+  }
+}

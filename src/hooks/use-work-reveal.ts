@@ -15,7 +15,9 @@ export function useWorkReveal(
     }
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     const elements = Array.from(
-      section.querySelectorAll<HTMLElement>("[data-work-reveal]"),
+      section.querySelectorAll<HTMLElement>(
+        "[data-work-reveal], [data-section-part]",
+      ),
     );
     const filterChanged = previousFilter.current !== selectedFilter;
     previousFilter.current = selectedFilter;
@@ -23,7 +25,7 @@ export function useWorkReveal(
       (element) => element.dataset.workReveal === "card",
     );
     const headingGroup = section.querySelector<HTMLElement>(
-      "[data-work-heading]",
+      "[data-section-heading]",
     )!;
     const headerElements = elements.filter(
       (element) => element.dataset.workReveal !== "card",
@@ -32,7 +34,9 @@ export function useWorkReveal(
       '[data-work-reveal="controls"]',
     )!;
     const keyFor = (element: HTMLElement) =>
-      element.dataset.revealId ?? element.dataset.workReveal!;
+      element.dataset.revealId ??
+      element.dataset.workReveal ??
+      element.dataset.sectionPart!;
 
     function complete(element: HTMLElement) {
       completed.current.add(keyFor(element));

@@ -13,10 +13,10 @@
   animation: arrive 450ms var(--reveal-delay, 0ms)
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.section [data-work-reveal="watermark"][data-reveal-state="active"] {
+.section [data-section-part="watermark"][data-reveal-state="active"] {
   animation: fade 300ms ease-out both;
 }
-.section [data-work-reveal="heading"][data-reveal-state="active"] {
+.section [data-section-part="heading"][data-reveal-state="active"] {
   animation-duration: 400ms;
   animation-delay: 150ms;
 }
@@ -24,7 +24,7 @@
   animation-duration: 250ms;
   animation-delay: 300ms;
 }
-.section [data-work-reveal]:focus-within {
+.section :is([data-work-reveal], [data-section-part]):focus-within {
   opacity: 1 !important;
   transform: none !important;
 }
@@ -47,7 +47,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .section[data-work-enhanced] [data-work-reveal] {
+  .section[data-work-enhanced] :is([data-work-reveal], [data-section-part]) {
     opacity: 1;
     transform: none;
     animation: none;

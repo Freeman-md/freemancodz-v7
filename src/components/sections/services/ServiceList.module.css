@@ -1,0 +1,16 @@
+.list {
+  margin-top: 32px;
+}
+.entrance {
+  position: relative;
+}
+@media (min-width: 64rem) {
+  .list {
+    margin-top: 64px;
+  }
+}
+@media (max-width: 22.5rem) {
+  .entrance + .entrance {
+    padding-top: 8px;
+  }
+}

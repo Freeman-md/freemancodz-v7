@@ -50,3 +50,11 @@
     top: 70px;
   }
 }
+
+.group[data-align="start"] {
+  text-align: left;
+}
+.group[data-align="start"] .watermark {
+  left: 0;
+  translate: none;
+}

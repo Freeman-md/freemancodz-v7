@@ -1,3 +1,4 @@
+import { Services } from "@/components/sections/services/Services";
 import { Work } from "@/components/sections/work/Work";
 import { selectedProjects } from "@/data/projects";
 import { Hero } from "@/components/sections/hero/Hero";
@@ -8,6 +9,7 @@ export default function HomePage() {
     <main id="main-content" tabIndex={-1}>
       <Hero />
       <Work projects={selectedProjects} headingLevel={2} viewAllHref="/work" />
+      <Services />
       <section className={styles.section} aria-labelledby="experience">
         <h2 id="experience" tabIndex={-1} className={styles.title}>
           Experience
