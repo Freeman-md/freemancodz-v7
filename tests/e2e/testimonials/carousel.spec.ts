@@ -118,6 +118,7 @@ test("Enter/Space, focus retention and rapid interrupted selections keep only th
     exact: true,
   });
   const next = section.getByRole("button", { name: "Next testimonial" });
+  await expect(next).toBeEnabled();
   await next.focus();
   await expect(section.getByText("01 / 02", { exact: true })).toHaveCount(1);
   await page.keyboard.press("Enter");
