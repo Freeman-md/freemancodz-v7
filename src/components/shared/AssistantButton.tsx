@@ -1,12 +1,14 @@
+import type { ComponentPropsWithRef } from "react";
 import styles from "./AssistantButton.module.css";
 
-export function AssistantButton() {
+export function AssistantButton(props: ComponentPropsWithRef<"button">) {
   return (
     <button
       type="button"
-      disabled
-      aria-label="AI assistant — coming soon"
+      aria-label="Open AI assistant"
+      aria-haspopup="dialog"
       className={styles.button}
+      {...props}
     >
       <svg
         width="22"

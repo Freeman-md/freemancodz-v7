@@ -1,0 +1,65 @@
+.composer {
+  flex: 0 0 144px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--assistant-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.composer label {
+  color: var(--assistant-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+.field {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--assistant-border);
+  border-radius: 14px;
+  background: var(--assistant-field);
+}
+.field textarea {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  resize: none;
+  border: 0;
+  background: transparent;
+  color: var(--assistant-text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  padding: 12px 62px 12px 14px;
+  border-radius: 14px;
+}
+.field textarea::placeholder {
+  color: var(--assistant-muted);
+  opacity: 1;
+}
+.field button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--assistant-action);
+  color: var(--assistant-on-action);
+  cursor: pointer;
+}
+.field button:disabled {
+  background: var(--assistant-disabled);
+  color: var(--assistant-muted);
+  cursor: default;
+}
+@media (width < 64rem) {
+  .composer {
+    flex-basis: calc(144px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+}
