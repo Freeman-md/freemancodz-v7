@@ -50,6 +50,7 @@ test("exact content, section order, full native headers and accessible panel rel
     "work",
     "services-title",
     "experience",
+    "testimonials",
     "contact",
   ]);
   const html = await (await request.get("/")).text();

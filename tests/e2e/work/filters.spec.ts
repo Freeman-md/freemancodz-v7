@@ -101,7 +101,11 @@ test("320px touch and keyboard can reach every filter without wrapping controls 
     .getByRole("button", { name: "Explorations", exact: true })
     .focus();
   await page.keyboard.press("Space");
-  await expect(page.locator("a[target='_blank']")).toHaveCount(1);
+  await expect(
+    page
+      .getByRole("region", { name: "/ SELECTED WORK" })
+      .locator("a[target='_blank']"),
+  ).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
     320,
   );

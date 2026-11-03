@@ -1,0 +1,93 @@
+.carousel {
+  max-width: 980px;
+  margin-inline: auto;
+}
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 342px;
+  margin: 20px auto 32px;
+}
+.controls button {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 112px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--color-control-border);
+  border-radius: 28px;
+  background: transparent;
+  color: var(--color-text-display);
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+.controls button:disabled {
+  cursor: default;
+}
+.controls button:enabled:hover {
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  border-color: var(--color-accent);
+}
+.counter {
+  flex: none;
+  width: 56px;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+}
+.stage {
+  position: relative;
+  /* Changing figures must not become the browser's page-scroll anchor. */
+  overflow-anchor: none;
+}
+.carousel[data-testimonials-enhanced="true"] .stage {
+  height: var(--testimonial-height);
+  overflow: hidden;
+}
+.carousel[data-animate="true"] .stage {
+  transition: height 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.carousel .stage:focus-within {
+  transition: none;
+}
+.status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (min-width: 64rem) {
+  .controls {
+    width: max-content;
+    gap: 16px;
+    margin-top: 32px;
+    margin-bottom: 40px;
+  }
+}
+@media (max-width: 22.499rem) {
+  .controls button {
+    width: 92px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carousel[data-animate="true"] .stage,
+  .controls button {
+    transition: none;
+  }
+}
