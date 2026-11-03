@@ -4,7 +4,7 @@ import { Testimonials } from "@/components/sections/testimonials/Testimonials";
 import { Work } from "@/components/sections/work/Work";
 import { selectedProjects } from "@/data/projects";
 import { Hero } from "@/components/sections/hero/Hero";
-import styles from "./page.module.css";
+import { Contact } from "@/components/sections/contact/Contact";
 
 export default function HomePage() {
   return (
@@ -14,11 +14,7 @@ export default function HomePage() {
       <Services />
       <Experience />
       <Testimonials />
-      <section className={styles.section} aria-labelledby="contact">
-        <h2 id="contact" tabIndex={-1} className={styles.title}>
-          Contact
-        </h2>
-      </section>
+      <Contact />
     </main>
   );
 }

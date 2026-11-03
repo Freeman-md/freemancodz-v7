@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUpRight } from "lucide-react";
+import { ArrowDown, MoveUpRight } from "lucide-react";
 import type { MouseEvent, ReactNode } from "react";
 import { handleAnchorClick } from "@/lib/navigation/anchor-navigation";
 import styles from "./ActionLink.module.css";
@@ -9,14 +9,16 @@ type ActionLinkProps = {
   href: string;
   children: ReactNode;
   arrow?: "down" | "up-right";
+  className?: string;
 };
 
 export function ActionLink({
   href,
   children,
   arrow = "down",
+  className,
 }: ActionLinkProps) {
-  const Arrow = arrow === "down" ? ArrowDown : ArrowUpRight;
+  const Arrow = arrow === "down" ? ArrowDown : MoveUpRight;
 
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     const destination = new URL(event.currentTarget.href);
@@ -35,9 +37,17 @@ export function ActionLink({
   }
 
   return (
-    <a href={href} onClick={handleClick} className={styles.link}>
+    <a
+      href={href}
+      onClick={handleClick}
+      className={`${styles.link} ${className ?? ""}`}
+    >
       {children}
-      <Arrow size={16} strokeWidth={1.75} aria-hidden="true" />
+      <Arrow
+        size={16}
+        strokeWidth={arrow === "up-right" ? 2 : 1.75}
+        aria-hidden="true"
+      />
     </a>
   );
 }

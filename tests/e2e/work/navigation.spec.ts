@@ -82,15 +82,36 @@ for (const mobile of [false, true]) {
         }),
       ).toHaveCount(1);
       await expect(page.locator(`#${id}`)).toBeFocused();
-      await expect
-        .poll(() =>
-          page
-            .locator(`#${id}`)
-            .evaluate((element) =>
-              Math.round(element.getBoundingClientRect().top),
-            ),
-        )
-        .toBe(id === "top" ? 0 : 104);
+      if (id === "contact") {
+        await expect
+          .poll(() =>
+            page.locator("#contact").evaluate((element) => {
+              const top = element.getBoundingClientRect().top + scrollY;
+              const clearance = parseFloat(
+                getComputedStyle(document.documentElement).scrollPaddingTop,
+              );
+              const destination = Math.min(
+                Math.max(0, top - clearance),
+                document.documentElement.scrollHeight - innerHeight,
+              );
+              return Math.round(scrollY - destination);
+            }),
+          )
+          .toBe(0);
+        expect(
+          (await page.locator("#contact").boundingBox())!.y,
+        ).toBeGreaterThanOrEqual(104);
+      } else {
+        await expect
+          .poll(() =>
+            page
+              .locator(`#${id}`)
+              .evaluate((element) =>
+                Math.round(element.getBoundingClientRect().top),
+              ),
+          )
+          .toBe(id === "top" ? 0 : 104);
+      }
       await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
       if (mobile) {
         expect(
