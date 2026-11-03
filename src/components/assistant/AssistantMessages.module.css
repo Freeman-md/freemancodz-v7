@@ -73,6 +73,9 @@
 .user .author {
   text-align: right;
 }
+.assistant .author {
+  margin-bottom: 16px;
+}
 .body {
   overflow-wrap: anywhere;
   white-space: pre-wrap;
@@ -90,19 +93,32 @@
 }
 .status {
   color: var(--assistant-muted);
-  margin: 10px 0 0;
+  margin: 0;
   font-size: 14px;
   line-height: 22px;
 }
+.stopped {
+  color: var(--assistant-muted);
+  margin: 16px 0 0;
+  font-size: 13px;
+  line-height: 20px;
+}
 .failure {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   color: var(--assistant-error);
   font-size: 14px;
   line-height: 22px;
 }
+.body + .failure {
+  margin-top: 24px;
+}
 .failure p {
-  margin: 10px 0;
+  margin: 0;
 }
 .failure button {
+  align-self: flex-start;
   min-width: 72px;
   min-height: 44px;
   border: 1px solid var(--assistant-control-border);
@@ -110,6 +126,7 @@
   background: transparent;
   color: var(--assistant-text);
   font: inherit;
+  line-height: 20px;
   cursor: pointer;
 }
 .failure button:disabled {

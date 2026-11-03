@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-export function useAssistantTranscript() {
+export function useAssistantTranscript(hasMessages: boolean) {
   const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [showLatest, setShowLatest] = useState(false);
   const following = useRef(true);
@@ -21,11 +21,18 @@ export function useAssistantTranscript() {
     }
     const scroller = element;
     scroller.scrollTo({
-      top: following.current ? scroller.scrollHeight : readingPosition.current,
+      top:
+        hasMessages && following.current
+          ? scroller.scrollHeight
+          : readingPosition.current,
     });
     readingPosition.current = scroller.scrollTop;
 
     function handleScroll() {
+      if (!hasMessages) {
+        readingPosition.current = scroller.scrollTop;
+        return;
+      }
       const nearBottom =
         scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop < 48;
       if (nearBottom) {
@@ -38,7 +45,7 @@ export function useAssistantTranscript() {
     }
 
     const observer = new ResizeObserver(() => {
-      if (following.current) {
+      if (hasMessages && following.current) {
         scroller.scrollTo({ top: scroller.scrollHeight });
         readingPosition.current = scroller.scrollTop;
       }
@@ -52,7 +59,7 @@ export function useAssistantTranscript() {
       observer.disconnect();
       scroller.removeEventListener("scroll", handleScroll);
     };
-  }, [element]);
+  }, [element, hasMessages]);
 
   return { transcriptRef: setElement, showLatest, latest };
 }

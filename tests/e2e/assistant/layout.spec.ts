@@ -9,6 +9,7 @@ for (const [width, height, theme, scenario] of [
   [820, 1180, "dark", "completed"],
   [390, 844, "light", "stream"],
   [320, 568, "dark", "long-draft"],
+  [320, 568, "dark", "stream"],
   [844, 390, "dark", "completed"],
 ] as const) {
   test(`${width}x${height} ${theme} ${scenario} Paper layout`, async ({
@@ -38,6 +39,27 @@ for (const [width, height, theme, scenario] of [
       expect(box.y + box.height).toBeLessThanOrEqual(bounds.y + bounds.height);
     }
     await expect(dialog.getByRole("textbox")).toHaveCSS("font-size", "16px");
+    if (scenario === "stream") {
+      const transcript = dialog.getByRole("region", { name: "Conversation" });
+      await expect
+        .poll(() => transcript.evaluate((element) => element.scrollTop))
+        .toBe(0);
+      const heading = (await dialog
+        .getByRole("heading", { name: "What would you like to know?" })
+        .boundingBox())!;
+      expect(heading.y).toBeGreaterThanOrEqual(
+        (await transcript.boundingBox())!.y,
+      );
+    } else {
+      const reply = dialog
+        .getByRole("article", { name: "Assistant", exact: true })
+        .first();
+      const author = (await reply
+        .getByText("Assistant", { exact: true })
+        .boundingBox())!;
+      const paragraph = (await reply.locator("p").first().boundingBox())!;
+      expect(paragraph.y - author.y - author.height).toBe(16);
+    }
     expect(
       await dialog.evaluate(
         (element) => element.scrollWidth <= element.clientWidth,

@@ -27,3 +27,11 @@ export async function openAssistant(page: Page, scenario?: string) {
 export async function advanceReply(page: Page, milliseconds = 1100) {
   await page.clock.runFor(milliseconds);
 }
+
+// Hold real CSS animations so lifecycle assertions do not race short product durations.
+export async function holdSurfaceMotion(page: Page) {
+  return page.addStyleTag({
+    content:
+      '[role="dialog"][data-phase="opening"], [role="dialog"][data-phase="closing"] { animation-play-state: paused !important; }',
+  });
+}

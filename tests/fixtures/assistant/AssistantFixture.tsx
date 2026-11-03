@@ -34,7 +34,7 @@ function FixtureSession({ scenario }: { scenario: string }) {
     messageBaseline,
     animateWelcome,
   } = useAssistantSurface(conversation.messages.length);
-  const transcript = useAssistantTranscript();
+  const transcript = useAssistantTranscript(conversation.messages.length > 0);
   const isDesktop = useAssistantViewport(element);
 
   return (

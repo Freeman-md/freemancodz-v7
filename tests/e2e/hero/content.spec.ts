@@ -154,6 +154,20 @@ test("one enabled assistant starts closed, while the logo returns and focuses ac
   await expect(assistant).toHaveAttribute("aria-haspopup", "dialog");
   await page.getByRole("link", { name: "Work", exact: true }).click();
   await expect(page.locator("#work")).toBeFocused();
+  await expect
+    .poll(() =>
+      page
+        .locator("#work")
+        .evaluate((element) =>
+          Math.round(
+            element.getBoundingClientRect().top -
+              parseFloat(
+                getComputedStyle(document.documentElement).scrollPaddingTop,
+              ),
+          ),
+        ),
+    )
+    .toBe(0);
   await page
     .getByRole("link", { name: "Freemancodz home" })
     .filter({ visible: true })

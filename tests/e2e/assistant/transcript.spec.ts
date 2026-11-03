@@ -16,9 +16,12 @@ test("follow bottom, retain older reading through chunks/reopen/resize, then res
   await dialog.getByRole("button", { name: "Send message" }).click();
   await advanceReply(page);
   await expect.poll(bottomGap).toBeLessThan(3);
+  const scrollStart = await transcript.evaluate((element) => element.scrollTop);
   await transcript.hover();
   await page.mouse.wheel(0, -500);
-  await advanceReply(page, 100);
+  await expect
+    .poll(() => transcript.evaluate((element) => element.scrollTop))
+    .toBeCloseTo(scrollStart - 500, 0);
   await expect(
     dialog.getByRole("button", { name: "Latest message" }),
   ).toBeVisible();

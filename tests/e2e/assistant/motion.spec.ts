@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { advanceReply, openAssistant } from "./assistant.fixture";
+import {
+  advanceReply,
+  holdSurfaceMotion,
+  openAssistant,
+} from "./assistant.fixture";
 
 test.use({ video: "on" });
 
@@ -34,11 +38,15 @@ test("surface alone owns exit completion and keeps background locked until dismi
 }) => {
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.goto("/");
-  await page.clock.install();
+  const heldMotion = await holdSurfaceMotion(page);
   const trigger = page.getByRole("button", { name: "Open AI assistant" });
   await trigger.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toHaveAttribute("data-phase", "opening");
+  await dialog.evaluate((element) => {
+    const animation = element.getAnimations()[0];
+    animation.currentTime = Number(animation.effect!.getTiming().duration) / 2;
+  });
   const close = dialog.getByRole("button", { name: "Close assistant" });
   await expect(close).toBeFocused();
   await dialog
@@ -53,7 +61,9 @@ test("surface alone owns exit completion and keeps background locked until dismi
   await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
   await expect(trigger).toBeHidden();
   await page.keyboard.press("Escape");
-  await page.clock.runFor(200);
+  await heldMotion.evaluate((element) =>
+    element.parentNode?.removeChild(element),
+  );
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
 });
@@ -63,7 +73,7 @@ test("responsive entrance and live reduced motion settle the requested open stat
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.clock.install();
+  await holdSurfaceMotion(page);
   await page.getByRole("button", { name: "Open AI assistant" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toHaveAttribute("data-phase", "opening");
@@ -119,6 +129,7 @@ test("initial and live reduced motion settle immediately without cancelling deli
   await expect(
     dialog.getByRole("article", { name: "You", exact: true }),
   ).toHaveCSS("animation-name", "none");
+  await holdSurfaceMotion(page);
   await dialog.getByRole("button", { name: "Close assistant" }).click();
   await expect(dialog).toHaveAttribute("data-phase", "closing");
   await page.emulateMedia({ reducedMotion: "reduce" });

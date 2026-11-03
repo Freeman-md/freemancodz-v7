@@ -65,6 +65,7 @@ test("desktop multiline, whitespace and composition semantics", async ({
   ).toBeDisabled();
   await field.fill("  First line");
   await field.press("Shift+Enter");
+  await field.press("Shift+Enter");
   await field.pressSequentially("Second line  ");
   await field.dispatchEvent("compositionstart");
   await field.press("Enter");
@@ -75,6 +76,12 @@ test("desktop multiline, whitespace and composition semantics", async ({
   await expect(
     dialog.getByRole("article", { name: "You", exact: true }).locator("p"),
   ).toHaveText(text);
+  expect(
+    await dialog
+      .getByRole("article", { name: "You", exact: true })
+      .locator("p")
+      .textContent(),
+  ).toBe(text);
   await expect(
     dialog
       .getByRole("article", { name: "Assistant", exact: true })

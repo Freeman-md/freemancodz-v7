@@ -72,18 +72,20 @@ export function AssistantMessages({
                 </div>
                 {message.text && (
                   <div className={styles.body}>
-                    {message.text
-                      .split("\n\n")
-                      .map((paragraph, paragraphIndex) => (
-                        <p key={paragraphIndex}>{paragraph}</p>
-                      ))}
+                    {message.role === "user" && <p>{message.text}</p>}
+                    {message.role === "assistant" &&
+                      message.text
+                        .split("\n\n")
+                        .map((paragraph, paragraphIndex) => (
+                          <p key={paragraphIndex}>{paragraph}</p>
+                        ))}
                   </div>
                 )}
                 {message.status === "waiting" && (
                   <p className={styles.status}>Thinking…</p>
                 )}
                 {message.status === "stopped" && (
-                  <p className={styles.status}>Response stopped</p>
+                  <p className={styles.stopped}>Response stopped</p>
                 )}
                 {message.status === "failed" && (
                   <div className={styles.failure}>
