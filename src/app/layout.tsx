@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import type { ReactNode } from "react";
 
-import { AssistantButton } from "@/components/shared/AssistantButton";
+import { Assistant } from "@/components/assistant/Assistant";
 import { SiteHeader } from "@/components/shared/SiteHeader";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
@@ -41,7 +41,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ThemeProvider>
           <SiteHeader />
           {children}
-          <AssistantButton />
+          <Assistant />
         </ThemeProvider>
       </body>
     </html>

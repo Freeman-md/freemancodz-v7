@@ -141,17 +141,17 @@ test("CTA preserves native navigation for modified clicks and other destinations
   await expect(page).toHaveURL("/");
 });
 
-test("one native disabled assistant has no dialog, while the logo returns and focuses actual top", async ({
+test("one enabled assistant starts closed, while the logo returns and focuses actual top", async ({
   page,
 }) => {
   await page.goto("/");
   const assistant = page.getByRole("button", {
-    name: "AI assistant — coming soon",
+    name: "Open AI assistant",
   });
   await expect(assistant).toHaveCount(1);
-  await expect(assistant).toBeDisabled();
+  await expect(assistant).toBeEnabled();
   await expect(assistant).toHaveAttribute("type", "button");
-  await expect(assistant).not.toHaveAttribute("aria-haspopup");
+  await expect(assistant).toHaveAttribute("aria-haspopup", "dialog");
   await page.getByRole("link", { name: "Work", exact: true }).click();
   await expect(page.locator("#work")).toBeFocused();
   await page

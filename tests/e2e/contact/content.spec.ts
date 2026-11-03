@@ -65,11 +65,11 @@ test("exact content, native link order and safe external semantics preserve the 
   await expect(section.getByRole("img")).toHaveCount(0);
   await expect(section.locator("img[alt='']")).toHaveCount(4);
   const assistant = page.getByRole("button", {
-    name: "AI assistant — coming soon",
+    name: "Open AI assistant",
     exact: true,
   });
   await expect(assistant).toHaveCount(1);
-  await expect(assistant).toBeDisabled();
+  await expect(assistant).toBeEnabled();
   expect(
     await section.evaluate((element) =>
       element.previousElementSibling?.getAttribute("aria-labelledby"),

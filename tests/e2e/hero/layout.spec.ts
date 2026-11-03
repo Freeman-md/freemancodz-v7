@@ -141,13 +141,11 @@ for (const viewport of [
         const dialog = page.getByRole("dialog");
         await expect(dialog).toBeVisible();
         expect(
-          await page
-            .locator("button[aria-label='AI assistant — coming soon']")
-            .count(),
+          await page.locator("button[aria-label='Open AI assistant']").count(),
         ).toBe(1);
         expect(
           await dialog
-            .locator("button[aria-label='AI assistant — coming soon']")
+            .locator("button[aria-label='Open AI assistant']")
             .count(),
         ).toBe(0);
         await expect

@@ -110,7 +110,7 @@ for (const route of ["/", "/work"]) {
       }
     }
     await expect(
-      page.getByRole("button", { name: "AI assistant — coming soon" }),
+      page.getByRole("button", { name: "Open AI assistant" }),
     ).toHaveCount(1);
     await expect(page.locator('[data-site-header="desktop"]')).toHaveCount(1);
     await expect(work.getByRole("link", { name: "View all work" })).toHaveCount(

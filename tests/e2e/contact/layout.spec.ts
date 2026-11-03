@@ -129,7 +129,7 @@ for (const viewport of [
       const lastBottom = Math.max(...boxes.map((box) => box.y + box.height));
       expect(bounds.y + bounds.height - lastBottom).toBe(112);
       const assistant = (await page
-        .getByRole("button", { name: "AI assistant — coming soon" })
+        .getByRole("button", { name: "Open AI assistant" })
         .boundingBox())!;
       expect(lastBottom + 6).toBeLessThan(assistant.y);
       expect(bounds.height).toBeLessThan(viewport.height);
