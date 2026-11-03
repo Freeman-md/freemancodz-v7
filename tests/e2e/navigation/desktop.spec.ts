@@ -20,13 +20,32 @@ test("links and logo navigate and focus unobscured destinations", async ({
     const target = page.locator(`#${id}`);
     await expect(target).toBeFocused();
     await expect(page).toHaveURL(new RegExp(`#${id}$`));
-    await expect
-      .poll(() =>
-        target.evaluate((element) =>
-          Math.round(element.getBoundingClientRect().top),
-        ),
-      )
-      .toBe(104);
+    if (id === "contact") {
+      await expect
+        .poll(() =>
+          target.evaluate((element) => {
+            const top = element.getBoundingClientRect().top + scrollY;
+            const clearance = parseFloat(
+              getComputedStyle(document.documentElement).scrollPaddingTop,
+            );
+            const destination = Math.min(
+              Math.max(0, top - clearance),
+              document.documentElement.scrollHeight - innerHeight,
+            );
+            return Math.round(scrollY - destination);
+          }),
+        )
+        .toBe(0);
+      expect((await target.boundingBox())!.y).toBeGreaterThanOrEqual(104);
+    } else {
+      await expect
+        .poll(() =>
+          target.evaluate((element) =>
+            Math.round(element.getBoundingClientRect().top),
+          ),
+        )
+        .toBe(104);
+    }
   }
 
   await page
@@ -102,9 +121,27 @@ test("anchor journey moves through intermediate positions and reduced motion mov
       const destination = document.getElementById("contact")!;
       return {
         top: Math.round(destination.getBoundingClientRect().top),
+        expectedTop: Math.round(
+          destination.getBoundingClientRect().top +
+            scrollY -
+            Math.min(
+              Math.max(
+                0,
+                destination.getBoundingClientRect().top +
+                  scrollY -
+                  parseFloat(
+                    getComputedStyle(document.documentElement).scrollPaddingTop,
+                  ),
+              ),
+              document.documentElement.scrollHeight - innerHeight,
+            ),
+        ),
         focused: document.activeElement === destination,
         hash: location.hash,
       };
     });
-  expect(result).toEqual({ top: 104, focused: true, hash: "#contact" });
+  expect(result.top).toBe(result.expectedTop);
+  expect(result.top).toBeGreaterThanOrEqual(104);
+  expect(result.focused).toBe(true);
+  expect(result.hash).toBe("#contact");
 });

@@ -98,6 +98,51 @@ async function seekGeometric(page: Page, section: Locator, amount: number) {
   await page.evaluate((top) => scrollTo({ top, behavior: "instant" }), target);
 }
 
+for (const viewport of [
+  { width: 1440, height: 960 },
+  { width: 820, height: 1180 },
+]) {
+  test(`${viewport.width}px compact Contact leaves full forward and reverse quotation reading reachable`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    const section = await openSection(page);
+    await seekGeometric(page, section, 0.2);
+    await expect.poll(() => progress(section)).toBeCloseTo(0.2, 2);
+    for (const selection of [0, 1]) {
+      if (selection === 1) {
+        const retained = await progress(section);
+        await section
+          .getByRole("button", { name: "Next testimonial" })
+          .evaluate((button: HTMLButtonElement) => button.click());
+        await settle(section);
+        await expect.poll(() => progress(section)).toBeCloseTo(retained, 2);
+      }
+      for (
+        let index = 0;
+        index < 40 && (await progress(section)) < 0.999;
+        index++
+      ) {
+        await page.mouse.wheel(0, 30);
+        await page.evaluate(
+          () =>
+            new Promise<void>((resolve) =>
+              requestAnimationFrame(() => resolve()),
+            ),
+        );
+      }
+      await expect.poll(() => progress(section)).toBeCloseTo(1, 2);
+      const figure = (await section.getByRole("figure").boundingBox())!;
+      const contact = (await page
+        .locator('section[aria-labelledby="contact"]')
+        .boundingBox())!;
+      expect(figure.y + figure.height).toBeLessThan(contact.y);
+      await page.mouse.wheel(0, -100);
+      await expect.poll(() => progress(section)).toBeLessThan(0.95);
+    }
+  });
+}
+
 for (const theme of ["dark", "light"]) {
   test(`${theme} word colours advance, blend, hold and reverse without moving quote metrics`, async ({
     page,
