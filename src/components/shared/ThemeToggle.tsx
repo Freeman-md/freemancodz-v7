@@ -1,7 +1,7 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useThemeToggle } from "@/hooks/use-theme-toggle";
+import { useThemeToggle } from "@/hooks/shared/use-theme-toggle";
 import styles from "./ThemeToggle.module.css";
 
 export function ThemeToggle() {

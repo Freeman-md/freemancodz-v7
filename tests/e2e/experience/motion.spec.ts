@@ -177,7 +177,7 @@ for (const restored of [false, true]) {
     });
     const group = section.locator("[data-section-heading]");
     if (!restored) {
-      await expect(section).toHaveAttribute("data-experience-reveal", "");
+      await expect(section).toHaveAttribute("data-section-reveal", "");
     }
     await group.evaluate((element) =>
       scrollTo(0, scrollY + element.getBoundingClientRect().bottom + 5),
@@ -200,7 +200,7 @@ for (const restored of [false, true]) {
         }
       });
     }
-    await expect(section).toHaveAttribute("data-experience-reveal", "");
+    await expect(section).toHaveAttribute("data-section-reveal", "");
     for (const element of await section
       .locator("[data-section-part], [data-experience-summary], li")
       .all()) {
@@ -254,7 +254,7 @@ for (const delayed of [false, true]) {
         }
       });
     }
-    await expect(section).toHaveAttribute("data-experience-reveal", "");
+    await expect(section).toHaveAttribute("data-section-reveal", "");
     await expect(heading).toBeFocused();
     await expect
       .poll(() =>
@@ -268,7 +268,7 @@ for (const delayed of [false, true]) {
       .all()) {
       await expect(element).toHaveCSS("opacity", "1");
       await expect(element).toHaveAttribute(
-        "data-experience-state",
+        "data-section-reveal-state",
         "complete",
       );
     }
@@ -297,6 +297,61 @@ test("focusing the pending h2 immediately reveals its introduction at unchanged 
     .all()) {
     await expect(element).toHaveCSS("opacity", "1");
   }
+});
+
+test("focusing the Experience heading settles its summary and releases later rows from the introduction delay", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 330 });
+  await page.clock.install({ time: new Date("2026-11-03T08:00:00Z") });
+  await page.goto("/");
+  const section = page.getByRole("region", {
+    name: "/ EXPERIENCE",
+    exact: true,
+  });
+  await expect(section).toHaveAttribute("data-section-reveal", "");
+
+  // Keep the introductory delay outstanding until the actual heading gets focus.
+  await page.clock.pauseAt(new Date("2026-11-03T10:00:00Z"));
+  const firstRow = section.getByRole("listitem").first();
+  await firstRow.evaluate((element) => {
+    scrollTo({
+      top: scrollY + element.getBoundingClientRect().top - innerHeight - 1,
+      behavior: "instant",
+    });
+  });
+  await expect(
+    section.locator('[data-section-part="watermark"]'),
+  ).toHaveAttribute("data-section-reveal-state", "active");
+  await expect(firstRow).toHaveAttribute(
+    "data-section-reveal-state",
+    "pending",
+  );
+
+  const heading = section.getByRole("heading", { level: 2 });
+  const headingBounds = await heading.boundingBox();
+  await heading.evaluate((element) => element.focus({ preventScroll: true }));
+  await expect(heading).toBeFocused();
+  expect(await heading.boundingBox()).toEqual(headingBounds);
+  for (const part of await section
+    .locator("[data-section-part], [data-experience-summary]")
+    .all()) {
+    await expect(part).toHaveCSS("opacity", "1");
+  }
+
+  await firstRow.evaluate((element) => {
+    scrollTo({
+      top: scrollY + element.getBoundingClientRect().top - 150,
+      behavior: "instant",
+    });
+  });
+  await expect
+    .poll(() => firstRow.evaluate((element) => element.getAnimations().length))
+    .toBe(1);
+  const remainingDelay = await firstRow.evaluate(
+    (element) => element.getAnimations()[0].effect!.getTiming().delay,
+  );
+  expect(remainingDelay).toBe(0);
 });
 
 test("live and initial reduced motion settle every stage without replay when disabled again", async ({

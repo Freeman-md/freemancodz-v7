@@ -17,7 +17,6 @@ export function useWorkFilter(projects: readonly Project[]) {
   const [selectedFilter, setSelectedFilter] = useState<WorkFilter>("All");
   const requestedFilter = useRef<WorkFilter>("All");
   const gridRef = useRef<HTMLDivElement>(null);
-  const galleryRef = useRef<HTMLDivElement>(null);
   const previousPositions = useRef<Map<string, DOMRect> | null>(null);
   const cancelMovement = useRef<(() => void) | null>(null);
   const isEnhanced = useSyncExternalStore(
@@ -75,7 +74,6 @@ export function useWorkFilter(projects: readonly Project[]) {
     filteredProjects,
     selectFilter,
     gridRef,
-    galleryRef,
     isEnhanced,
   };
 }

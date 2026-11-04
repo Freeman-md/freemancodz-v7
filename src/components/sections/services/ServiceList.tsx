@@ -2,15 +2,15 @@
 
 import { useRef } from "react";
 import type { Service } from "@/data/services";
-import { useServiceDisclosure } from "@/hooks/use-service-disclosure";
-import { useServicesReveal } from "@/hooks/use-services-reveal";
+import { useServiceDisclosure } from "@/hooks/home/services/use-service-disclosure";
+import { useSectionReveal } from "@/hooks/shared/use-section-reveal";
 import { ServiceItem } from "./ServiceItem";
 import styles from "./ServiceList.module.css";
 
 export function ServiceList({ services }: { services: readonly Service[] }) {
   const listRef = useRef<HTMLDivElement>(null);
   const disclosure = useServiceDisclosure(listRef);
-  useServicesReveal(listRef);
+  useSectionReveal(listRef, { focusPolicy: "section-context" });
 
   return (
     <div

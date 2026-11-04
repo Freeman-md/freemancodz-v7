@@ -3,7 +3,6 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 const subscribe = () => () => {};
 
 export function useTestimonialCarousel(count: number) {
-  const carouselRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const isEnhanced = useSyncExternalStore(
     subscribe,
@@ -15,8 +14,7 @@ export function useTestimonialCarousel(count: number) {
 
   useLayoutEffect(() => {
     const stage = stageRef.current!;
-    const figures = Array.from(stage.querySelectorAll<HTMLElement>("figure"));
-    const selected = figures[activeIndex];
+    const selected = stage.querySelectorAll<HTMLElement>("figure")[activeIndex];
     let isActive = true;
 
     function synchronizeHeight() {
@@ -30,16 +28,11 @@ export function useTestimonialCarousel(count: number) {
 
     synchronizeHeight();
     const observer = new ResizeObserver(synchronizeHeight);
-    figures.forEach((figure) => observer.observe(figure));
-    window.addEventListener("resize", synchronizeHeight);
-    document.fonts.addEventListener("loadingdone", synchronizeHeight);
-    void document.fonts.ready.then(synchronizeHeight);
+    observer.observe(selected);
 
     return () => {
       isActive = false;
       observer.disconnect();
-      window.removeEventListener("resize", synchronizeHeight);
-      document.fonts.removeEventListener("loadingdone", synchronizeHeight);
     };
   }, [activeIndex, isEnhanced]);
 
@@ -50,7 +43,6 @@ export function useTestimonialCarousel(count: number) {
   }
 
   return {
-    carouselRef,
     stageRef,
     activeIndex,
     isEnhanced,

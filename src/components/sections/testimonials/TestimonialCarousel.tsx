@@ -1,10 +1,11 @@
 "use client";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useRef } from "react";
 import type { Testimonial } from "@/data/testimonials";
-import { useTestimonialCarousel } from "@/hooks/use-testimonial-carousel";
-import { useTestimonialsReveal } from "@/hooks/use-testimonials-reveal";
-import { useTestimonialScroll } from "@/hooks/use-testimonial-scroll";
+import { useTestimonialCarousel } from "@/hooks/home/testimonials/use-testimonial-carousel";
+import { useTestimonialsReveal } from "@/hooks/home/testimonials/use-testimonials-reveal";
+import { useTestimonialScroll } from "@/hooks/home/testimonials/use-testimonial-scroll";
 import { TestimonialQuote } from "./TestimonialQuote";
 import styles from "./TestimonialCarousel.module.css";
 
@@ -13,14 +14,9 @@ export function TestimonialCarousel({
 }: {
   testimonials: readonly Testimonial[];
 }) {
-  const {
-    carouselRef,
-    stageRef,
-    activeIndex,
-    isEnhanced,
-    hasInteracted,
-    select,
-  } = useTestimonialCarousel(testimonials.length);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const { stageRef, activeIndex, isEnhanced, hasInteracted, select } =
+    useTestimonialCarousel(testimonials.length);
   useTestimonialsReveal(carouselRef);
   useTestimonialScroll(stageRef, activeIndex, isEnhanced);
   const selected = testimonials[activeIndex];

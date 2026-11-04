@@ -1,6 +1,6 @@
 .section {
-  --service-row-delay: 350;
-  --service-row-stagger: 60;
+  --section-row-delay: 350;
+  --section-row-stagger: 60;
   width: calc(100% - var(--page-gutter) * 2);
   max-width: var(--content-max-width);
   margin-inline: auto;
@@ -12,17 +12,17 @@
 .heading [data-section-part="watermark"] {
   top: 0;
 }
-.section[data-services-reveal] [data-service-state="pending"] {
+.section[data-section-reveal] [data-section-reveal-state="pending"] {
   opacity: 0;
 }
-.section [data-section-part="watermark"][data-service-state="active"] {
+.section [data-section-part="watermark"][data-section-reveal-state="active"] {
   animation: fade 300ms ease-out both;
 }
-.section [data-section-part="heading"][data-service-state="active"] {
+.section [data-section-part="heading"][data-section-reveal-state="active"] {
   animation: descend 400ms 150ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.section [data-service-row][data-service-state="active"] {
-  animation: arrive 450ms var(--service-delay, 0ms)
+.section [data-service-row][data-section-reveal-state="active"] {
+  animation: arrive 450ms var(--section-reveal-delay, 0ms)
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .section [data-service-row]:focus-within {
@@ -77,7 +77,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .section[data-services-reveal] [data-service-state] {
+  .section[data-section-reveal] [data-section-reveal-state] {
     opacity: 1;
     transform: none;
     animation: none;

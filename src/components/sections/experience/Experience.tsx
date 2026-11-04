@@ -16,7 +16,11 @@ export function Experience() {
         >
           / EXPERIENCE
         </SectionHeading>
-        <p className={styles.summary} data-experience-summary>
+        <p
+          className={styles.summary}
+          data-experience-summary
+          data-section-reveal-introduction
+        >
           3+ years of experience
         </p>
       </div>

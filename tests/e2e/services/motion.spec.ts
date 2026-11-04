@@ -241,6 +241,63 @@ for (const delayedHydration of [false, true]) {
   });
 }
 
+test("focusing a service reveals its context without skipping the remaining row entrance", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 330 });
+  await page.clock.install({ time: new Date("2026-11-03T08:00:00Z") });
+  await page.goto("/");
+  const section = page.getByRole("region", { name: "/ SERVICES", exact: true });
+  const web = section.getByRole("button", {
+    name: "WEB DEVELOPMENT",
+    exact: true,
+  });
+  await expect(web).toBeEnabled();
+
+  // Freeze elapsed time so focusing cannot race the remaining entrance delay.
+  await page.clock.pauseAt(new Date("2026-11-03T10:00:00Z"));
+  const rows = section.locator("[data-service-row]");
+  await rows.first().evaluate((element) => {
+    scrollTo({
+      top: scrollY + element.getBoundingClientRect().top - innerHeight - 1,
+      behavior: "instant",
+    });
+  });
+  await expect(
+    section.locator('[data-section-part="watermark"]'),
+  ).toHaveAttribute("data-section-reveal-state", "active");
+  await expect(rows.first()).toHaveAttribute(
+    "data-section-reveal-state",
+    "pending",
+  );
+
+  await web.evaluate((element) => element.focus({ preventScroll: true }));
+  await expect(web).toBeFocused();
+  await expect(web).toHaveAttribute("aria-expanded", "true");
+  await expect(rows.first()).toHaveCSS("opacity", "1");
+  for (const part of await section.locator("[data-section-part]").all()) {
+    await expect(part).toHaveCSS("opacity", "1");
+  }
+
+  await rows.last().evaluate((element) => {
+    scrollTo({
+      top: scrollY + element.getBoundingClientRect().top - 150,
+      behavior: "instant",
+    });
+  });
+  await expect
+    .poll(() =>
+      rows.last().evaluate((element) => element.getAnimations().length),
+    )
+    .toBe(1);
+  const remainingDelay = await rows
+    .last()
+    .evaluate(
+      (element) => element.getAnimations()[0].effect!.getTiming().delay,
+    );
+  expect(remainingDelay).toBeGreaterThan(0);
+});
+
 test("keyboard focus reveals pending context without selecting, and reduced motion settles initially and during changes", async ({
   page,
   browserName,

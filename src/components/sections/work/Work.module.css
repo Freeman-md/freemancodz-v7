@@ -1,6 +1,8 @@
 .section {
   --work-reflow-duration: 350;
   --work-filter-fade-duration: 200;
+  --work-card-entrance-delay: 400;
+  --work-card-stagger: 60;
   width: calc(100% - var(--page-gutter) * 2);
   max-width: var(--content-max-width);
   margin-inline: auto;

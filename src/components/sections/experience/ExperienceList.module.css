@@ -39,8 +39,8 @@
   text-align: right;
   white-space: nowrap;
 }
-.row[data-experience-state="active"] {
-  animation: arrive 450ms var(--experience-delay, 0ms)
+.row[data-section-reveal-state="active"] {
+  animation: arrive 450ms var(--section-reveal-delay, 0ms)
     cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes arrive {
@@ -88,7 +88,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .row[data-experience-state] {
+  .row[data-section-reveal-state] {
     animation: none;
   }
 }

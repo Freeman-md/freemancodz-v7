@@ -4,7 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { MoveUpRight } from "lucide-react";
 import type { CSSProperties } from "react";
 import { navigationLinks } from "@/config/navigation";
-import { useMobileNavigation } from "@/hooks/use-mobile-navigation";
+import { useMobileNavigation } from "@/hooks/shared/use-mobile-navigation";
 import { MobileHeader } from "./MobileHeader";
 import styles from "./MobileNavigation.module.css";
 

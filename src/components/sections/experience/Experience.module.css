@@ -1,6 +1,6 @@
 .section {
-  --experience-row-delay: 800;
-  --experience-row-stagger: 60;
+  --section-row-delay: 800;
+  --section-row-stagger: 60;
   width: calc(100% - var(--page-gutter) * 2);
   max-width: var(--content-max-width);
   margin-inline: auto;
@@ -35,16 +35,16 @@
   white-space: nowrap;
   transition: var(--theme-color-transition);
 }
-.section[data-experience-reveal] [data-experience-state="pending"] {
+.section[data-section-reveal] [data-section-reveal-state="pending"] {
   opacity: 0;
 }
-.section [data-section-part="watermark"][data-experience-state="active"] {
+.section [data-section-part="watermark"][data-section-reveal-state="active"] {
   animation: fade 300ms ease-out both;
 }
-.section [data-section-part="heading"][data-experience-state="active"] {
+.section [data-section-part="heading"][data-section-reveal-state="active"] {
   animation: descend 400ms 150ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.summary[data-experience-state="active"] {
+.summary[data-section-reveal-state="active"] {
   animation: fade 250ms 550ms ease-out both;
 }
 @keyframes fade {
@@ -108,7 +108,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .section[data-experience-reveal] [data-experience-state] {
+  .section[data-section-reveal] [data-section-reveal-state] {
     opacity: 1;
     transform: none;
     animation: none;

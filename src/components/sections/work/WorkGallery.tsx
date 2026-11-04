@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { MoveUpRight } from "lucide-react";
+import { useRef } from "react";
 import type { Project } from "@/data/projects";
-import { useWorkFilter } from "@/hooks/use-work-filter";
-import { useWorkReveal } from "@/hooks/use-work-reveal";
+import { useWorkFilter } from "@/hooks/work/use-work-filter";
+import { useWorkReveal } from "@/hooks/work/use-work-reveal";
 import { WorkFilters } from "./WorkFilters";
 import { ProjectCard } from "./ProjectCard";
 import styles from "./WorkGallery.module.css";
@@ -18,12 +19,12 @@ export function WorkGallery({
   projectHeadingLevel: 2 | 3;
   viewAllHref?: string;
 }) {
+  const galleryRef = useRef<HTMLDivElement>(null);
   const {
     selectedFilter,
     filteredProjects,
     selectFilter,
     gridRef,
-    galleryRef,
     isEnhanced,
   } = useWorkFilter(projects);
   useWorkReveal(galleryRef, selectedFilter);

@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
 import { AssistantDialog } from "@/components/assistant/AssistantDialog";
-import { useAssistantConversation } from "@/hooks/use-assistant-conversation";
-import { useAssistantSurface } from "@/hooks/use-assistant-surface";
-import { useAssistantTranscript } from "@/hooks/use-assistant-transcript";
-import { useAssistantViewport } from "@/hooks/use-assistant-viewport";
+import { useAssistantConversation } from "@/hooks/shared/assistant/use-assistant-conversation";
+import { useAssistantSurface } from "@/hooks/shared/assistant/use-assistant-surface";
+import { useAssistantTranscript } from "@/hooks/shared/assistant/use-assistant-transcript";
+import { useAssistantViewport } from "@/hooks/shared/assistant/use-assistant-viewport";
 import { createReplyDriver } from "./reply-driver";
 import { scenarios } from "./scenarios";
 

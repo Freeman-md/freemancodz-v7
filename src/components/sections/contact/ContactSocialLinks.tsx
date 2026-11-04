@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import type { ContactSocialLink } from "@/data/contact";
-import { useContactReveal } from "@/hooks/use-contact-reveal";
+import { useContactReveal } from "@/hooks/home/contact/use-contact-reveal";
 import styles from "./ContactSocialLinks.module.css";
 
 type ContactSocialLinksProps = {

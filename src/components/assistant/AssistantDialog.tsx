@@ -1,8 +1,8 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import type { Ref, RefObject } from "react";
-import type { useAssistantConversation } from "@/hooks/use-assistant-conversation";
-import type { useAssistantTranscript } from "@/hooks/use-assistant-transcript";
+import type { useAssistantConversation } from "@/hooks/shared/assistant/use-assistant-conversation";
+import type { useAssistantTranscript } from "@/hooks/shared/assistant/use-assistant-transcript";
 import type { AssistantPhase } from "@/types/assistant";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantMessages } from "./AssistantMessages";

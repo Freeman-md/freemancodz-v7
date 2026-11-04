@@ -204,3 +204,49 @@ test("short/long resize is interruptible, masked and naturally remeasured", asyn
     )
     .toBeCloseTo(0, 0);
 });
+
+test("selected quotation font reflow resizes its stage without a viewport change", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+
+  const section = page.getByRole("region", {
+    name: "/ THEIR WORDS",
+    exact: true,
+  });
+  await section.getByRole("button", { name: "Next testimonial" }).click();
+  await expect(section.getByRole("status")).toHaveText(
+    "Matin Adebayo, testimonial 2 of 2",
+  );
+
+  const figure = section.getByRole("figure");
+  const stage = section.locator("[data-testimonial-stage]");
+  const initialHeight = (await figure.boundingBox())!.height;
+
+  await figure.getByRole("blockquote").evaluate((element) => {
+    element.style.fontFamily = "monospace";
+  });
+
+  await expect
+    .poll(async () =>
+      Math.abs((await figure.boundingBox())!.height - initialHeight),
+    )
+    .toBeGreaterThan(1);
+  await expect
+    .poll(
+      async () =>
+        (await stage.boundingBox())!.height -
+        (await figure.boundingBox())!.height,
+    )
+    .toBeCloseTo(0, 0);
+
+  const stageBounds = (await stage.boundingBox())!;
+  const attributionBounds = (await figure.locator("figcaption").boundingBox())!;
+  const attributionBottom = attributionBounds.y + attributionBounds.height;
+  const stageBottom = stageBounds.y + stageBounds.height;
+  // Computed CSS heights and bounding boxes can round to different subpixels.
+  expect(attributionBottom - stageBottom).toBeLessThanOrEqual(0.5);
+});

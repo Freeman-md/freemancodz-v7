@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useHeroScroll } from "@/hooks/use-hero-scroll";
+import { useHeroScroll } from "@/hooks/home/hero/use-hero-scroll";
 import styles from "./HeroPortrait.module.css";
 
 export function HeroPortrait({ heroId }: { heroId: string }) {

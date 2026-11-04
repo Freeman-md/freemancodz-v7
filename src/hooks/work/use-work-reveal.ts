@@ -14,6 +14,13 @@ export function useWorkReveal(
       return;
     }
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const sectionStyles = getComputedStyle(section);
+    const cardEntranceDelay = Number(
+      sectionStyles.getPropertyValue("--work-card-entrance-delay"),
+    );
+    const cardStagger = Number(
+      sectionStyles.getPropertyValue("--work-card-stagger"),
+    );
     const elements = Array.from(
       section.querySelectorAll<HTMLElement>(
         "[data-work-reveal], [data-section-part]",
@@ -107,7 +114,10 @@ export function useWorkReveal(
         }
         const card = entry.target as HTMLElement;
         if (!completed.current.has(keyFor(card))) {
-          reveal(card, (headingEntered ? 400 : 0) + cardIndex * 60);
+          reveal(
+            card,
+            (headingEntered ? cardEntranceDelay : 0) + cardIndex * cardStagger,
+          );
           cardIndex += 1;
         }
         observer.unobserve(card);

@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import type { ExperienceRecord } from "@/data/experience";
-import { useExperienceReveal } from "@/hooks/use-experience-reveal";
+import { useSectionReveal } from "@/hooks/shared/use-section-reveal";
 import styles from "./ExperienceList.module.css";
 
 export function ExperienceList({
@@ -11,7 +11,7 @@ export function ExperienceList({
   experience: readonly ExperienceRecord[];
 }) {
   const listRef = useRef<HTMLUListElement>(null);
-  useExperienceReveal(listRef);
+  useSectionReveal(listRef, { focusPolicy: "heading-context" });
 
   return (
     <ul ref={listRef} className={styles.list} role="list">
