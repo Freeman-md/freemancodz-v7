@@ -258,11 +258,21 @@ test("focusing a service reveals its context without skipping the remaining row 
   await page.clock.pauseAt(new Date("2026-11-03T10:00:00Z"));
   const rows = section.locator("[data-service-row]");
   await rows.first().evaluate((element) => {
+    // Keep a clear off-screen gap instead of relying on an observer boundary pixel.
     scrollTo({
-      top: scrollY + element.getBoundingClientRect().top - innerHeight - 1,
+      top: scrollY + element.getBoundingClientRect().top - innerHeight - 24,
       behavior: "instant",
     });
   });
+  await expect
+    .poll(() =>
+      rows
+        .first()
+        .evaluate(
+          (element) => element.getBoundingClientRect().top - innerHeight,
+        ),
+    )
+    .toBeGreaterThan(8);
   await expect(
     section.locator('[data-section-part="watermark"]'),
   ).toHaveAttribute("data-section-reveal-state", "active");
