@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { requestAssistantReply } from "@/modules/assistant/client";
 import { AssistantButton } from "@/components/shared/AssistantButton";
 import { useAssistantConversation } from "@/hooks/shared/assistant/use-assistant-conversation";
 import { useAssistantSurface } from "@/hooks/shared/assistant/use-assistant-surface";
@@ -10,7 +11,9 @@ import { AssistantDialog } from "./AssistantDialog";
 
 export function Assistant() {
   const id = useId();
-  const conversation = useAssistantConversation();
+  const conversation = useAssistantConversation({
+    requestReply: requestAssistantReply,
+  });
   const {
     phase,
     triggerRef,

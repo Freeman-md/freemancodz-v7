@@ -58,7 +58,14 @@ export function AssistantComposer({
           }}
         />
         {isReplying ? (
-          <button type="button" aria-label="Stop response" onClick={stop}>
+          <button
+            type="button"
+            aria-label="Stop response"
+            onClick={(event) => {
+              event.preventDefault();
+              stop();
+            }}
+          >
             <Square size={20} strokeWidth={2} aria-hidden="true" />
           </button>
         ) : (

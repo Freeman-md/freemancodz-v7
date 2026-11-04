@@ -1,16 +1,19 @@
 import { expect, test } from "@playwright/test";
 import { advanceReply, openAssistant } from "./assistant.fixture";
 
-test("ordinary presets submit exact text and immediately fail without a reply request", async ({
+test("ordinary presets submit exact text and safely fail when the endpoint is unconfigured", async ({
   page,
 }) => {
   const dialog = await openAssistant(page);
   const requests: string[] = [];
   page.on("request", (request) => {
-    if (["fetch", "xhr"].includes(request.resourceType())) {
+    if (request.url().endsWith("/api/assistant")) {
       requests.push(request.url());
     }
   });
+  const responsePromise = page.waitForResponse((response) =>
+    response.url().endsWith("/api/assistant"),
+  );
   await dialog
     .getByRole("button", { name: "What has Freeman built?", exact: true })
     .click();
@@ -30,7 +33,12 @@ test("ordinary presets submit exact text and immediately fail without a reply re
       .getByText("Thinking…", { exact: true }),
   ).toHaveCount(0);
   await expect(dialog.getByRole("textbox")).toBeEmpty();
-  expect(requests).toEqual([]);
+  const response = await responsePromise;
+  expect(response.status()).toBe(503);
+  expect(await response.json()).toMatchObject({
+    error: { code: "unavailable" },
+  });
+  expect(requests).toHaveLength(1);
 });
 
 test("request-time fixture gate cannot be enabled through the URL", async ({

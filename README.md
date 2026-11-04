@@ -15,17 +15,18 @@ Open [localhost:3000](http://localhost:3000). Stop the development server before
 
 ## Commands
 
-| Command                | What it does                                                                     |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| `npm run dev`          | Starts the development server with the default bundler.                          |
-| `npm run build`        | Creates and validates the production build.                                      |
-| `npm run start`        | Serves that production build.                                                    |
-| `npm run lint`         | Checks Next.js, React, TypeScript and selected readability rules; warnings fail. |
-| `npm run typecheck`    | Generates route types, then checks TypeScript without emitting JavaScript.       |
-| `npm run format`       | Applies Prettier formatting.                                                     |
-| `npm run format:check` | Checks formatting without changing files.                                        |
-| `npm run test:e2e`     | Exercises the production shell in Chromium and WebKit on port 3100.              |
-| `npm run check`        | Runs format checking, linting and type checking.                                 |
+| Command                | What it does                                                                                        |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Starts the development server with the default bundler.                                             |
+| `npm run build`        | Creates and validates the production build.                                                         |
+| `npm run start`        | Serves that production build.                                                                       |
+| `npm run lint`         | Checks Next.js, React, TypeScript and selected readability rules; warnings fail.                    |
+| `npm run typecheck`    | Generates route types, then checks TypeScript without emitting JavaScript.                          |
+| `npm run format`       | Applies Prettier formatting.                                                                        |
+| `npm run format:check` | Checks formatting without changing files.                                                           |
+| `npm run test:server`  | Verifies Assistant contracts, grounding, the SDK adapter and HTTP boundaries without paid requests. |
+| `npm run test:e2e`     | Exercises the production shell in Chromium and WebKit on port 3100.                                 |
+| `npm run check`        | Runs format checking, linting and type checking.                                                    |
 
 ESLint catches rule violations; TypeScript checks types; Prettier formats code. They do not prove that a feature behaves correctly. Playwright exercises the production shell in Chromium and WebKit.
 
@@ -76,13 +77,14 @@ Ask for `milestone-authoring` to turn an approved plan into a contract. **Run Ac
 
 The active contract is locally excluded through Git's `info/exclude`. The authoring skill prepares that exclusion in each new checkout; this bootstrap does not create an active contract.
 
-Commits follow Conventional Commits. Ordinary commits and pushes require authorization. This shell includes no deployment, backend or live assistant integration.
+Commits follow Conventional Commits. Ordinary commits and pushes require authorization. The Assistant uses the server-only `/api/assistant` endpoint; production activation follows the human merge and the linked Vercel Git workflow.
 
 ## Browser verification
 
 ```bash
 npx playwright install chromium webkit
 npm run check
+npm run test:server
 npm run build
 npm run test:e2e
 ```
@@ -99,8 +101,22 @@ M01 contract version 2 uses inspected representative backdrop captures instead o
 
 The persistent root `Assistant` owns four focused hooks in `src/hooks/shared/assistant/`: surface/focus lifecycle, conversation/cancellation, visual-viewport measurement and transcript following. The three dialog presentation components own their colocated CSS; immutable welcome copy and the small optional `requestReply(messages, { signal, onChunk })` callback contract stay separate. Closing preserves messages, draft and in-flight replies; a reload clears the visit. No browser history store is used.
 
-M08 implements the [approved Assistant composition](https://app.paper.design/file/01M5VJC7VWD8F9QYARYR43X33M/p-9-0). Normal routes have no reply source: submission immediately shows the designed failure and Retry, without a messaging request, simulated answer or waiting delay. M09 connects live messaging.
+The [approved Assistant composition](https://app.paper.design/file/01M5VJC7VWD8F9QYARYR43X33M/p-9-0) now connects its existing conversation hook to the M09 browser transport. The hook still owns messages, draft, Stop, Retry and visit continuity. Missing server configuration returns a safe HTTP 503 and the designed failure/Retry state.
 
 `/test-fixtures/assistant` calls Next.js `connection()` before checking the server-only flag at request time and defaults to 404. Only the exact value `1` renders its test-only host; query parameters can then select a known scenario. Never enable the flag in deployment configuration. Fixture modules and deterministic replies are absent from the normal root Assistant import path. Tests operate the real dialog/controllers with Playwright's clock, using the 3101 host for controlled chunks/failure/late cancellation and 3100 for ordinary integration/isolation.
 
 After `npm run build`, run `npm run test:e2e -- tests/e2e/assistant` or the full suite. Layout captures and motion recordings are retained with the browser report. The keyboard-bound case simulates VisualViewport geometry; it does not establish physical iOS keyboard behavior or live AI delivery.
+
+## Assistant messaging
+
+`src/modules/assistant/schemas.ts` defines strict Zod request/event/error contracts and shared limits. `client.ts` selects recent whole turns, posts through the existing reply callback and validates UTF-8 NDJSON. It delivers first text immediately, batches later fragments about every 50ms and flushes on confirmed completion. Broken or incomplete streams fail while retaining displayed text. Browser cancellation clears pending batching and aborts HTTP.
+
+`AssistantService` validates independently and supplies instructions built from the approved records in `src/data/`. The injected `AssistantModel` keeps the service independent of OpenAI. `src/infrastructure/openai/` owns request-time key validation, pinned settings and SDK event translation; browser imports never reach these modules. `route.ts` owns bounded body reading, HTTP errors, streaming headers and the 30-second request deadline. Provider errors and transcripts are never logged or forwarded as diagnostics.
+
+`POST /api/assistant` accepts `{ messages: [{ role: "user" | "assistant", text: string }] }`. Unknown fields, blank text and a final non-user message are rejected. Limits are 64KiB while reading HTTP bytes, 20 messages, 12,000 total text characters and 4,000 per user question (JavaScript string units). Recent history is dropped at turn boundaries; the current question is never truncated. Delivery is one strict JSON event per line: `{ type: "delta", text }`, `{ type: "complete" }` or `{ type: "error", error: { code, message } }`. HTTP errors use the same error object. Codes are `invalid_request`, `unavailable` and `reply_failed`.
+
+Configure the existing `OPENAI_API_KEY` securely for the linked project's Preview and Production environments. `.env.example` documents the variable without a credential. Do not put it in public variables, source, chat, logs or commits. The key is read only when a request arrives, so builds work without it. Generation uses the [OpenAI Responses API](https://developers.openai.com/api/docs/guides/streaming-responses) with [gpt-6-luna](https://developers.openai.com/api/docs/models/gpt-6-luna), reasoning `none`, at most 800 output tokens, `store: false` and zero SDK retries. The route's single 30-second lifecycle budget includes body reading and provider work; the SDK safeguard cannot extend it. No retrieval service, provider tools, persistence or automatic retry queue is used.
+
+`npm run test:server` uses the installed Playwright runner in Node with fake model/SDK transports, including deadline and disconnection cases. Both browser servers explicitly clear `OPENAI_API_KEY`; CI also disables it and runs the server suite. The new messaging browser cases route actual browser HTTP to a test-owned stream server, preserving the real client/decoder and UI. All automated verification is isolated from paid provider access. M08's gated callback fixtures remain available only on the explicitly enabled fixture server.
+
+Before merge, separately verify the actual preview's three presets, one grounded follow-up, one unknown-fact question and Stop; inspect desktop/mobile and record the tested commit/environment without full transcript logging. Confirm secure Production key configuration and the Vercel rule for exactly `POST /api/assistant`: 10 requests per 60 seconds per IP. Vercel's counters are regional, so this is basic abuse protection rather than a global spending cap. Preserve existing rules. Public-site smoke verification follows the human merge; preview evidence does not establish production activation.

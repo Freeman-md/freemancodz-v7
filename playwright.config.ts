@@ -22,14 +22,14 @@ export default defineConfig({
       url: "http://localhost:3100",
       reuseExistingServer: false,
       timeout: 60_000,
-      env: { ASSISTANT_UI_FIXTURES: "0" },
+      env: { ASSISTANT_UI_FIXTURES: "0", OPENAI_API_KEY: "" },
     },
     {
       command: "npm run start -- --port 3101",
       url: "http://localhost:3101",
       reuseExistingServer: false,
       timeout: 60_000,
-      env: { ASSISTANT_UI_FIXTURES: "1" },
+      env: { ASSISTANT_UI_FIXTURES: "1", OPENAI_API_KEY: "" },
     },
   ],
 });
