@@ -1,7 +1,6 @@
 "use client";
 
 import { useId } from "react";
-import { requestAssistantReply } from "@/modules/assistant/client";
 import { AssistantButton } from "@/components/shared/AssistantButton";
 import { useAssistantConversation } from "@/hooks/shared/assistant/use-assistant-conversation";
 import { useAssistantSurface } from "@/hooks/shared/assistant/use-assistant-surface";
@@ -11,9 +10,7 @@ import { AssistantDialog } from "./AssistantDialog";
 
 export function Assistant() {
   const id = useId();
-  const conversation = useAssistantConversation({
-    requestReply: requestAssistantReply,
-  });
+  const conversation = useAssistantConversation();
   const {
     phase,
     triggerRef,
@@ -26,7 +23,10 @@ export function Assistant() {
     messageBaseline,
     animateWelcome,
   } = useAssistantSurface(conversation.messages.length);
-  const transcript = useAssistantTranscript(conversation.messages.length > 0);
+  const transcript = useAssistantTranscript(
+    conversation.messages.length,
+    conversation.isReplying,
+  );
   const isDesktop = useAssistantViewport(element);
 
   return (

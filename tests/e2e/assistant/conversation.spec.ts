@@ -1,218 +1,149 @@
 import { expect, test } from "@playwright/test";
-import { advanceReply, openAssistant } from "./assistant.fixture";
+import { openAssistant } from "./assistant.fixture";
 
-test("ordinary presets submit exact text and safely fail when the endpoint is unconfigured", async ({
+test("preset waits for a complete answer, preserves a draft and submits follow-up history", async ({
   page,
 }) => {
-  const dialog = await openAssistant(page);
-  const requests: string[] = [];
-  page.on("request", (request) => {
-    if (request.url().endsWith("/api/assistant")) {
-      requests.push(request.url());
-    }
+  const completion = Promise.withResolvers<void>();
+  const bodies: unknown[] = [];
+  const answer = "Freeman builds interfaces 👋\n\nHe also builds workflows.";
+  await page.route("**/api/assistant", async (route) => {
+    bodies.push(route.request().postDataJSON());
+    await completion.promise;
+    await route.fulfill({ json: { text: answer } });
   });
-  const responsePromise = page.waitForResponse((response) =>
-    response.url().endsWith("/api/assistant"),
-  );
+  const dialog = await openAssistant(page);
+  const field = dialog.getByRole("textbox");
+  const send = dialog.getByRole("button", { name: "Send message" });
   await dialog
     .getByRole("button", { name: "What has Freeman built?", exact: true })
     .click();
+  await expect(dialog.getByRole("status")).toHaveText("Thinking…");
   await expect(
-    dialog.getByRole("article", { name: "You", exact: true }),
-  ).toHaveText("YouWhat has Freeman built?");
-  await expect(
-    dialog
-      .getByRole("article", { name: "Assistant", exact: true })
-      .getByText("The reply couldn’t be completed. Try again.", {
-        exact: true,
-      }),
-  ).toBeVisible();
-  await expect(
-    dialog
-      .getByRole("article", { name: "Assistant", exact: true })
-      .getByText("Thinking…", { exact: true }),
+    dialog.getByRole("article", { name: "Assistant", exact: true }),
   ).toHaveCount(0);
-  await expect(dialog.getByRole("textbox")).toBeEmpty();
-  const response = await responsePromise;
-  expect(response.status()).toBe(503);
-  expect(await response.json()).toMatchObject({
-    error: { code: "unavailable" },
+  await field.fill("How can he help?");
+  await expect(send).toBeDisabled();
+  await field.press("Enter");
+  expect(bodies).toHaveLength(1);
+
+  completion.resolve();
+  await expect(
+    dialog.getByRole("article", { name: "Assistant", exact: true }),
+  ).toHaveText("Assistant" + answer.replace("\n\n", ""));
+  await expect(dialog.getByRole("status")).toHaveText("Reply complete");
+  await expect(field).toHaveValue("How can he help?");
+  await send.click();
+  await expect(
+    dialog.getByRole("article", { name: "Assistant", exact: true }),
+  ).toHaveCount(2);
+  expect(bodies[1]).toEqual({
+    messages: [
+      { role: "user", text: "What has Freeman built?" },
+      { role: "assistant", text: answer },
+      { role: "user", text: "How can he help?" },
+    ],
   });
-  expect(requests).toHaveLength(1);
 });
 
-test("request-time fixture gate cannot be enabled through the URL", async ({
-  request,
-}) => {
-  for (const suffix of [
-    "",
-    "?scenario=stream&ASSISTANT_UI_FIXTURES=1&enabled=1",
-  ]) {
-    expect(
-      (await request.get(`/test-fixtures/assistant${suffix}`)).status(),
-    ).toBe(404);
-  }
-  expect(
-    (
-      await request.get(
-        "http://localhost:3101/test-fixtures/assistant?scenario=stream",
-      )
-    ).status(),
-  ).toBe(200);
-});
-
-test("desktop multiline, whitespace and composition semantics", async ({
+test("desktop whitespace, multiline and composition input", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 960 });
-  const dialog = await openAssistant(page, "stream");
+  const questions: string[] = [];
+  await page.route("**/api/assistant", async (route) => {
+    questions.push(route.request().postDataJSON().messages.at(-1).text);
+    await route.fulfill({ json: { text: "Complete reply" } });
+  });
+  const dialog = await openAssistant(page);
   const field = dialog.getByRole("textbox");
-  await field.fill("  \n ");
+  await field.fill(" \n ");
   await expect(
     dialog.getByRole("button", { name: "Send message" }),
   ).toBeDisabled();
-  await field.fill("  First line");
-  await field.press("Shift+Enter");
+  await field.fill("  First paragraph");
   await field.press("Shift+Enter");
   await field.pressSequentially("Second line  ");
   await field.dispatchEvent("compositionstart");
   await field.press("Enter");
-  await expect(dialog.getByRole("article")).toHaveCount(0);
+  expect(questions).toHaveLength(0);
   await field.dispatchEvent("compositionend");
   const text = await field.inputValue();
   await field.press("Enter");
-  await expect(
-    dialog.getByRole("article", { name: "You", exact: true }).locator("p"),
-  ).toHaveText(text);
-  expect(
-    await dialog
-      .getByRole("article", { name: "You", exact: true })
-      .locator("p")
-      .textContent(),
-  ).toBe(text);
-  await expect(
-    dialog
-      .getByRole("article", { name: "Assistant", exact: true })
-      .getByText("Thinking…", { exact: true }),
-  ).toBeVisible();
-  await field.fill("Next draft");
-  await field.press("Enter");
-  await expect(
-    dialog.getByRole("article", { name: "You", exact: true }),
-  ).toHaveCount(1);
-  await advanceReply(page);
-  await expect(
-    dialog.getByRole("article", { name: "Assistant", exact: true }),
-  ).toContainText("JPScents");
-  await expect(
-    dialog
-      .getByRole("article", { name: "Assistant", exact: true })
-      .getByText("Thinking…", { exact: true }),
-  ).toHaveCount(0);
-  await advanceReply(page, 3300);
-  await expect(
-    dialog.getByRole("button", { name: "Send message" }),
-  ).toBeVisible();
-  await expect(field).toHaveValue("Next draft");
   await expect(dialog.getByRole("status")).toHaveText("Reply complete");
+  expect(questions).toEqual([text]);
 });
 
-test("mobile Return inserts a newline and Send submits", async ({ page }) => {
+test("mobile Return adds a line; Send submits; closing preserves the pending reply", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const dialog = await openAssistant(page, "stream");
+  const completion = Promise.withResolvers<void>();
+  await page.route("**/api/assistant", async (route) => {
+    await completion.promise;
+    await route.fulfill({ json: { text: "Completed while closed" } });
+  });
+  const dialog = await openAssistant(page);
   const field = dialog.getByRole("textbox");
-  await field.fill("First");
+  await field.fill("Hello");
   await field.press("Enter");
-  await field.pressSequentially("Second");
-  await expect(field).toHaveValue("First\nSecond");
+  await expect(field).toHaveValue("Hello\n");
   await expect(dialog.getByRole("article")).toHaveCount(0);
   await dialog.getByRole("button", { name: "Send message" }).click();
-  await expect(
-    dialog.getByRole("article", { name: "You", exact: true }),
-  ).toHaveCount(1);
-});
-
-for (const afterChunk of [false, true]) {
-  test(`Stop ${afterChunk ? "after" : "before"} first chunk retains partial text and ignores late callbacks`, async ({
-    page,
-  }) => {
-    const dialog = await openAssistant(page, afterChunk ? "stream" : "late");
-    await dialog
-      .getByRole("button", { name: "What has Freeman built?", exact: true })
-      .click();
-    if (afterChunk) {
-      await advanceReply(page);
-    }
-    const reply = dialog.getByRole("article", {
-      name: "Assistant",
-      exact: true,
-    });
-    const partial = (await reply.textContent())!.replace("Thinking…", "");
-    await dialog.getByRole("button", { name: "Stop response" }).click();
-    await expect(reply).toContainText("Response stopped");
-    await advanceReply(page, 5000);
-    await expect(reply).toHaveText(partial + "Response stopped");
-    await expect(reply).not.toContainText("Late cancelled text");
-    await expect(dialog.getByRole("status")).toHaveText("Response stopped");
-  });
-}
-
-test("failure Retry replaces partial text, keeps one user and preserves a newer draft", async ({
-  page,
-}) => {
-  const dialog = await openAssistant(page, "failure");
-  await dialog
-    .getByRole("button", { name: "What has Freeman built?", exact: true })
-    .click();
-  await advanceReply(page, 2200);
-  await expect(dialog.getByRole("button", { name: "Retry" })).toHaveCount(1);
-  await dialog.getByRole("textbox").fill("Keep this draft");
-  await dialog.getByRole("button", { name: "Retry" }).click();
-  const reply = dialog.getByRole("article", { name: "Assistant", exact: true });
-  await expect(reply).not.toContainText("JPScents");
-  await advanceReply(page, 2200);
-  await expect(reply).toContainText("Interface Studies");
-  expect((await reply.textContent())!.match(/JPScents is/g)).toHaveLength(1);
-  await expect(
-    dialog.getByRole("article", { name: "You", exact: true }),
-  ).toHaveCount(1);
-  await expect(dialog.getByRole("textbox")).toHaveValue("Keep this draft");
-});
-
-test("reply continues while the surface is closed", async ({ page }) => {
-  const dialog = await openAssistant(page, "stream");
-  await dialog
-    .getByRole("button", { name: "What has Freeman built?", exact: true })
-    .click();
+  await expect(dialog.getByRole("status")).toHaveText("Thinking…");
+  await field.fill("Next draft");
   await dialog.getByRole("button", { name: "Close assistant" }).click();
-  await advanceReply(page, 5000);
   await expect(dialog).toHaveCount(0);
-  await page.getByRole("button", { name: "Open fixture assistant" }).click();
-  await advanceReply(page, 500);
+  completion.resolve();
+  await page.getByRole("button", { name: "Open AI assistant" }).click();
   await expect(
     dialog.getByRole("article", { name: "Assistant", exact: true }),
-  ).toContainText("application-tracker automation");
-  await expect(
-    dialog.getByRole("button", { name: "Stop response" }),
-  ).toHaveCount(0);
+  ).toContainText("Completed while closed");
+  await expect(field).toHaveValue("Next draft");
 });
 
-test("a cancelled late producer cannot overwrite a newer reply", async ({
-  page,
-}) => {
-  const dialog = await openAssistant(page, "late");
-  const field = dialog.getByRole("textbox");
-  await field.fill("First question");
-  await dialog.getByRole("button", { name: "Send message" }).click();
-  await dialog.getByRole("button", { name: "Stop response" }).click();
-  await field.fill("Second question");
-  await dialog.getByRole("button", { name: "Send message" }).click();
-  await advanceReply(page, 2200);
-  await expect(dialog).not.toContainText("Late cancelled text");
-  await expect(
-    dialog.getByRole("article", { name: "Assistant", exact: true }).last(),
-  ).toContainText("Freeman builds websites");
-  await expect(
-    dialog.getByRole("article", { name: "You", exact: true }),
-  ).toHaveCount(2);
-});
+for (const failure of ["http", "non-json", "invalid", "network"]) {
+  test(`a ${failure} failure permits a subsequent manual submission`, async ({
+    page,
+  }) => {
+    let calls = 0;
+    await page.route("**/api/assistant", async (route) => {
+      calls += 1;
+      if (calls > 1) {
+        await route.fulfill({ json: { text: "Recovered" } });
+      } else if (failure === "http") {
+        await route.fulfill({
+          status: 502,
+          json: { error: { code: "reply_failed", message: "Failed" } },
+        });
+      } else if (failure === "non-json") {
+        await route.fulfill({
+          status: 502,
+          contentType: "text/html",
+          body: "Bad gateway",
+        });
+      } else if (failure === "invalid") {
+        await route.fulfill({ json: { text: " " } });
+      } else {
+        await route.abort("failed");
+      }
+    });
+    const dialog = await openAssistant(page);
+    await dialog.getByRole("textbox").fill("Hello");
+    await dialog.getByRole("button", { name: "Send message" }).click();
+    await expect(dialog.getByRole("status")).toHaveText(
+      "The reply couldn’t be completed. Please send your message again.",
+    );
+    await expect(
+      dialog.getByRole("button", {
+        name: /^(Stop response|Retry|Latest message)$/,
+      }),
+    ).toHaveCount(0);
+    await dialog.getByRole("textbox").fill("Hello again");
+    await dialog.getByRole("button", { name: "Send message" }).click();
+    await expect(dialog.getByRole("status")).toHaveText("Reply complete");
+    await expect(
+      dialog.getByRole("article", { name: "Assistant", exact: true }),
+    ).toContainText("Recovered");
+  });
+}

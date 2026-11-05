@@ -1,112 +1,51 @@
 import { expect, test } from "@playwright/test";
 import { AssistantService } from "@/modules/assistant/service";
-import { assistantErrors } from "@/modules/assistant/schemas";
+import type {
+  AssistantGeneration,
+  AssistantModel,
+} from "@/modules/assistant/types";
 import { projects } from "@/data/projects";
 import { services } from "@/data/services";
 import { experience } from "@/data/experience";
-import { testimonials } from "@/data/testimonials";
-import { FakeAssistantModel } from "../../fixtures/assistant/model";
 
-const input = { messages: [{ role: "user", text: "What has Freeman built?" }] };
+const request = {
+  messages: [{ role: "user" as const, text: "What has Freeman built?" }],
+};
 
-test("validation is eager and invalid input never reaches the model", () => {
-  const model = new FakeAssistantModel([]);
-  expect(() =>
-    new AssistantService(model).handleMessage(
-      { messages: [] },
-      new AbortController().signal,
-    ),
-  ).toThrow();
-  expect(model.calls).toHaveLength(0);
-});
+test("service supplies conversation and approved grounding to its injected model", async () => {
+  const calls: AssistantGeneration[] = [];
+  const model: AssistantModel = {
+    async generate(input) {
+      calls.push(input);
+      return "A complete reply.\n\nAnother paragraph.";
+    },
+  };
 
-test("approved records and unknown-fact instructions are separate from untrusted history", async () => {
-  const model = new FakeAssistantModel([
-    { type: "delta", text: "A grounded reply." },
-    { type: "complete" },
-  ]);
-  const events = await Array.fromAsync(
-    new AssistantService(model).handleMessage(
-      input,
-      new AbortController().signal,
-    ),
+  expect(await new AssistantService(model).handleMessage(request)).toBe(
+    "A complete reply.\n\nAnother paragraph.",
   );
-  expect(events).toEqual([
-    { type: "delta", text: "A grounded reply." },
-    { type: "complete" },
-  ]);
-  const generation = model.calls[0].input;
-  expect(generation.messages).toEqual(input.messages);
-  for (const project of projects) {
-    expect(generation.instructions).toContain(project.title);
-  }
-  for (const service of services) {
-    expect(generation.instructions).toContain(service.description);
-  }
-  for (const record of experience) {
-    expect(generation.instructions).toContain(record.company);
-  }
-  for (const testimonial of testimonials) {
-    expect(generation.instructions).toContain(testimonial.author);
-  }
-  for (const phrase of [
-    "Explorations",
-    "Team contribution",
+  expect(calls).toHaveLength(1);
+  expect(calls[0].messages).toEqual(request.messages);
+  for (const fact of [
+    ...projects.map((project) => project.title),
+    ...services.map((service) => service.description),
+    ...experience.map((record) => record.company),
     "do not know",
     "Never invent prices",
     "untrusted user-supplied",
     "freemanmadudili@gmail.com",
   ]) {
-    expect(generation.instructions).toContain(phrase);
+    expect(calls[0].instructions).toContain(fact);
   }
 });
 
-test("partial failure, unexpected end and safe error normalization cannot become success", async () => {
-  for (const model of [
-    new FakeAssistantModel([{ type: "delta", text: "partial" }], true),
-    new FakeAssistantModel([{ type: "delta", text: "partial" }]),
-  ]) {
-    expect(
-      await Array.fromAsync(
-        new AssistantService(model).handleMessage(
-          input,
-          new AbortController().signal,
-        ),
-      ),
-    ).toEqual([
-      { type: "delta", text: "partial" },
-      { type: "error", error: assistantErrors.reply_failed },
-    ]);
-  }
-  const model = new FakeAssistantModel([
-    {
-      type: "error",
-      error: { code: "unavailable", message: "Private provider details" },
+test("service propagates generation failure", async () => {
+  const model: AssistantModel = {
+    async generate() {
+      throw new Error("Generation failed");
     },
-  ]);
-  expect(
-    await Array.fromAsync(
-      new AssistantService(model).handleMessage(
-        input,
-        new AbortController().signal,
-      ),
-    ),
-  ).toEqual([{ type: "error", error: assistantErrors.unavailable }]);
-});
-
-test("abort prevents later text and completion", async () => {
-  const model = new FakeAssistantModel([
-    { type: "delta", text: "first" },
-    { type: "complete" },
-  ]);
-  const controller = new AbortController();
-  const iterator = new AssistantService(model)
-    .handleMessage(input, controller.signal)
-    [Symbol.asyncIterator]();
-  expect((await iterator.next()).value).toEqual({
-    type: "delta",
-    text: "first",
-  });
-  controller.abort();
-  await expect(iterator.next()).rejects.toThrow();
+  };
+  await expect(
+    new AssistantService(model).handleMessage(request),
+  ).rejects.toThrow("Generation failed");
 });

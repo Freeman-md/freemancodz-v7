@@ -1,7 +1,6 @@
 .shell {
   flex: 1;
   min-height: 0;
-  position: relative;
 }
 .scroller {
   height: 100%;
@@ -97,62 +96,11 @@
   font-size: 14px;
   line-height: 22px;
 }
-.stopped {
-  color: var(--assistant-muted);
-  margin: 16px 0 0;
-  font-size: 13px;
-  line-height: 20px;
-}
 .failure {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin: 0;
   color: var(--assistant-error);
   font-size: 14px;
   line-height: 22px;
-}
-.body + .failure {
-  margin-top: 24px;
-}
-.failure p {
-  margin: 0;
-}
-.failure button {
-  align-self: flex-start;
-  min-width: 72px;
-  min-height: 44px;
-  border: 1px solid var(--assistant-control-border);
-  border-radius: 22px;
-  background: transparent;
-  color: var(--assistant-text);
-  font: inherit;
-  line-height: 20px;
-  cursor: pointer;
-}
-.failure button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.latest {
-  position: absolute;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 164px;
-  min-height: 44px;
-  padding: 8px 14px;
-  border: 1px solid var(--assistant-control-border);
-  border-radius: 24px;
-  background: var(--assistant-latest);
-  color: var(--assistant-text);
-  font: inherit;
-  font-size: 13px;
-  line-height: 20px;
-  cursor: pointer;
 }
 .welcome[data-animate="true"] .introduction {
   animation: welcome 180ms 120ms both;

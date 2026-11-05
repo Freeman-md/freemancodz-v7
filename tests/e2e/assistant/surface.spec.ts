@@ -33,6 +33,9 @@ for (const route of ["/", "/work"]) {
 test("visit state survives close, responsive changes, theme and client navigation; reload clears", async ({
   page,
 }) => {
+  await page.route("**/api/assistant", (route) =>
+    route.fulfill({ json: { text: "A complete answer" } }),
+  );
   const dialog = await openAssistant(page);
   await dialog
     .getByRole("button", { name: "What has Freeman built?", exact: true })
@@ -61,4 +64,20 @@ test("visit state survives close, responsive changes, theme and client navigatio
   await expect(
     dialog.getByRole("heading", { name: "What would you like to know?" }),
   ).toBeVisible();
+});
+
+test("reduced motion opens and dismisses accessibly", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const dialog = await openAssistant(page);
+  await expect(dialog).toHaveCSS("animation-name", "none");
+  await expect(
+    dialog.getByRole("button", { name: "Close assistant" }),
+  ).toBeFocused();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(dialog).toHaveAttribute("data-phase", "open");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Open AI assistant" }),
+  ).toBeFocused();
 });

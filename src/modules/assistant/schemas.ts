@@ -62,11 +62,9 @@ export const assistantHttpErrorSchema = z.strictObject({
   error: assistantErrorSchema,
 });
 
-export const assistantEventSchema = z.discriminatedUnion("type", [
-  z.strictObject({ type: z.literal("delta"), text: z.string().min(1) }),
-  z.strictObject({ type: z.literal("complete") }),
-  z.strictObject({ type: z.literal("error"), error: assistantErrorSchema }),
-]);
+export const assistantResponseSchema = z.strictObject({
+  text: z.string().refine((text) => text.trim().length > 0),
+});
 
 export const assistantErrors = {
   invalid_request: {
@@ -79,6 +77,6 @@ export const assistantErrors = {
   },
   reply_failed: {
     code: "reply_failed",
-    message: "The reply couldn’t be completed. Try again.",
+    message: "The reply couldn’t be completed. Please send your message again.",
   },
 } as const;
