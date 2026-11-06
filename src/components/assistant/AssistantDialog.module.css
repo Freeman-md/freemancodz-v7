@@ -14,9 +14,7 @@
   --assistant-action: #64ffda;
   --assistant-on-action: #020c1b;
   --assistant-bubble: #163046;
-  --assistant-control-border: #4c6578;
   --assistant-error: #d7bfc1;
-  --assistant-latest: #10253a;
   --entrance-y: 16px;
   position: fixed;
   z-index: 41;
@@ -42,9 +40,7 @@
   --assistant-action: #126b59;
   --assistant-on-action: #fff;
   --assistant-bubble: #e5edf1;
-  --assistant-control-border: #516773;
   --assistant-error: #76434b;
-  --assistant-latest: #f3f6f8;
 }
 .dialog :focus-visible {
   outline: 2px solid var(--assistant-action);

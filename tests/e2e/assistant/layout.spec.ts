@@ -4,12 +4,12 @@ import { openAssistant } from "./assistant.fixture";
 test.use({ video: "on" });
 
 for (const [width, height, theme, scenario] of [
-  [1440, 960, "dark", "stream"],
+  [1440, 960, "dark", "empty"],
   [1440, 960, "light", "completed"],
   [820, 1180, "dark", "completed"],
-  [390, 844, "light", "stream"],
+  [390, 844, "light", "completed"],
   [320, 568, "dark", "long-draft"],
-  [320, 568, "dark", "stream"],
+  [320, 568, "dark", "empty"],
   [844, 390, "dark", "completed"],
 ] as const) {
   test(`${width}x${height} ${theme} ${scenario} Paper layout`, async ({
@@ -20,7 +20,30 @@ for (const [width, height, theme, scenario] of [
       (value) => localStorage.setItem("freemancodz-v7-theme", value),
       theme,
     );
-    const dialog = await openAssistant(page, scenario);
+    await page.route("**/api/assistant", (route) =>
+      route.fulfill({
+        json: {
+          text:
+            "Freeman builds interfaces.\n\n" +
+            "A readable complete answer. ".repeat(50),
+        },
+      }),
+    );
+    const dialog = await openAssistant(page);
+    if (scenario !== "empty") {
+      await dialog.getByRole("textbox").fill("What has Freeman built?");
+      await dialog.getByRole("button", { name: "Send message" }).click();
+      await expect(dialog.getByRole("status")).toHaveText("Reply complete");
+    }
+    if (scenario === "long-draft") {
+      const field = dialog.getByRole("textbox");
+      await field.fill("A long draft\n".repeat(30));
+      expect(
+        await field.evaluate(
+          (element) => element.scrollHeight > element.clientHeight,
+        ),
+      ).toBe(true);
+    }
     const bounds = (await dialog.boundingBox())!;
     expect(bounds.width).toBe(width >= 1024 ? 440 : width);
     expect(bounds.height).toBe(width >= 1024 ? 640 : height);
@@ -39,7 +62,7 @@ for (const [width, height, theme, scenario] of [
       expect(box.y + box.height).toBeLessThanOrEqual(bounds.y + bounds.height);
     }
     await expect(dialog.getByRole("textbox")).toHaveCSS("font-size", "16px");
-    if (scenario === "stream") {
+    if (scenario === "empty") {
       const transcript = dialog.getByRole("region", { name: "Conversation" });
       await expect
         .poll(() => transcript.evaluate((element) => element.scrollTop))
@@ -65,15 +88,11 @@ for (const [width, height, theme, scenario] of [
         (element) => element.scrollWidth <= element.clientWidth,
       ),
     ).toBe(true);
-    await page.keyboard.press(
-      testInfo.project.name === "webkit" && process.platform === "darwin"
-        ? "Alt+Tab"
-        : "Tab",
-    );
-    await dialog.getByRole("button", { name: "Close assistant" }).focus();
-    await expect(
-      dialog.getByRole("button", { name: "Close assistant" }),
-    ).toHaveCSS("outline-style", "solid");
+    const close = dialog.getByRole("button", { name: "Close assistant" });
+    await close.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(close).toBeFocused();
+    await expect(close).toHaveCSS("outline-style", "solid");
     await testInfo.attach(`assistant-${width}-${theme}-${scenario}`, {
       body: await page.screenshot({
         path: testInfo.outputPath(
@@ -99,7 +118,7 @@ test("simulated VisualViewport keyboard bounds keep header and composer reachabl
     });
     Object.defineProperty(window, "visualViewport", { value: viewport });
   });
-  const dialog = await openAssistant(page, "completed");
+  const dialog = await openAssistant(page);
   expect((await dialog.boundingBox())!.height).toBe(500);
   expect((await dialog.boundingBox())!.y).toBe(24);
   const send = (await dialog

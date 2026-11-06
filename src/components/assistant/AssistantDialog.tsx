@@ -82,7 +82,7 @@ export function AssistantDialog({
           <AssistantMessages
             messages={conversation.messages}
             submit={conversation.submit}
-            retry={conversation.retry}
+            error={conversation.error}
             isReplying={conversation.isReplying}
             {...transcript}
             messageBaseline={messageBaseline}
@@ -94,7 +94,6 @@ export function AssistantDialog({
             isReplying={conversation.isReplying}
             isDesktop={isDesktop}
             submit={conversation.submit}
-            stop={conversation.stop}
           />
           <div
             className={styles.announcement}
@@ -102,9 +101,7 @@ export function AssistantDialog({
             aria-live="polite"
             aria-atomic="true"
           >
-            <span key={conversation.announcement.sequence}>
-              {conversation.announcement.text}
-            </span>
+            {conversation.announcement}
           </div>
         </Dialog.Content>
       </Dialog.Portal>

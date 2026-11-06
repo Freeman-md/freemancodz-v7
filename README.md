@@ -15,17 +15,18 @@ Open [localhost:3000](http://localhost:3000). Stop the development server before
 
 ## Commands
 
-| Command                | What it does                                                                     |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| `npm run dev`          | Starts the development server with the default bundler.                          |
-| `npm run build`        | Creates and validates the production build.                                      |
-| `npm run start`        | Serves that production build.                                                    |
-| `npm run lint`         | Checks Next.js, React, TypeScript and selected readability rules; warnings fail. |
-| `npm run typecheck`    | Generates route types, then checks TypeScript without emitting JavaScript.       |
-| `npm run format`       | Applies Prettier formatting.                                                     |
-| `npm run format:check` | Checks formatting without changing files.                                        |
-| `npm run test:e2e`     | Exercises the production shell in Chromium and WebKit on port 3100.              |
-| `npm run check`        | Runs format checking, linting and type checking.                                 |
+| Command                | What it does                                                                                        |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Starts the development server with the default bundler.                                             |
+| `npm run build`        | Creates and validates the production build.                                                         |
+| `npm run start`        | Serves that production build.                                                                       |
+| `npm run lint`         | Checks Next.js, React, TypeScript and selected readability rules; warnings fail.                    |
+| `npm run typecheck`    | Generates route types, then checks TypeScript without emitting JavaScript.                          |
+| `npm run format`       | Applies Prettier formatting.                                                                        |
+| `npm run format:check` | Checks formatting without changing files.                                                           |
+| `npm run test:server`  | Verifies Assistant contracts, grounding, the SDK adapter and HTTP boundaries without paid requests. |
+| `npm run test:e2e`     | Exercises the production shell in Chromium and WebKit on port 3100.                                 |
+| `npm run check`        | Runs format checking, linting and type checking.                                                    |
 
 ESLint catches rule violations; TypeScript checks types; Prettier formats code. They do not prove that a feature behaves correctly. Playwright exercises the production shell in Chromium and WebKit.
 
@@ -76,18 +77,19 @@ Ask for `milestone-authoring` to turn an approved plan into a contract. **Run Ac
 
 The active contract is locally excluded through Git's `info/exclude`. The authoring skill prepares that exclusion in each new checkout; this bootstrap does not create an active contract.
 
-Commits follow Conventional Commits. Ordinary commits and pushes require authorization. This shell includes no deployment, backend or live assistant integration.
+Commits follow Conventional Commits. Ordinary commits and pushes require authorization. The Assistant uses the server-only `/api/assistant` endpoint; production activation follows the human merge and the linked Vercel Git workflow.
 
 ## Browser verification
 
 ```bash
 npx playwright install chromium webkit
 npm run check
+npm run test:server
 npm run build
 npm run test:e2e
 ```
 
-`npm run test:e2e` invokes Playwright against two managed production servers from the same build: ordinary application on port 3100 (`ASSISTANT_UI_FIXTURES=0`) and the explicitly enabled fixture host on port 3101 (`ASSISTANT_UI_FIXTURES=1`). Stop `next dev` before building its shared `.next` directory. The test server never reuses an existing server. Run one group with `npm run test:e2e -- tests/e2e/navigation`.
+`npm run test:e2e` runs Chromium and WebKit against one managed production server on port 3100, with real OpenAI credentials disabled. Stop `next dev` before building its shared `.next` directory. Run one group with `npm run test:e2e -- tests/e2e/assistant`.
 
 Tests use Playwright fixtures directly, grouped under `tests/e2e/{theme,navigation,header,hero,work,services,experience,testimonials,contact,assistant}`. Contact cases cover confirmed native links, initial/no-JavaScript content, responsive artwork and social rows, page-end/assistant clearance, entrance recovery and reduced motion. Testimonials cases cover exact copy, carousel accessibility, natural short/long heights, independent entrance, reversible word colour and layout rebasing. Experience cases cover employment semantics, responsive summary/row alignment, staged entrance, skipped/later-row recovery and initial/direct-anchor focus. Services cases cover native keyboard/touch disclosures, hover cancellation, progressive rendering, responsive preview clearance and interruptible motion. Work cases cover both datasets, filters, genuine artwork, responsive rows, viewport/reflow interruption and cross-document navigation. Hero cases cover initial HTML/no-JavaScript availability, focus, responsive composition, staged entrances, reversible scrolling and reduced-motion changes. Representative captures and sequence videos accompany the browser report. They cover startup before hydration, storage failure, anchor focus, modal accessibility through exit, interrupted/reduced motion, responsive cleanup, geometry and backdrop rendering. Patterned backdrop content exists only in its test fixture. Screenshots are attached to the HTML report under `playwright-report/`; failures retain screenshots and traces in `test-results/`. CI installs Chromium/WebKit with system dependencies and uploads browser evidence. These generated directories are ignored.
 
@@ -97,10 +99,18 @@ M01 contract version 2 uses inspected representative backdrop captures instead o
 
 ## Assistant interface
 
-The persistent root `Assistant` owns four focused hooks in `src/hooks/shared/assistant/`: surface/focus lifecycle, conversation/cancellation, visual-viewport measurement and transcript following. The three dialog presentation components own their colocated CSS; immutable welcome copy and the small optional `requestReply(messages, { signal, onChunk })` callback contract stay separate. Closing preserves messages, draft and in-flight replies; a reload clears the visit. No browser history store is used.
+The persistent root `Assistant` composes the dialog and focused hooks for conversation, surface/focus, mobile viewport sizing and simple scrolling to new messages. Closing preserves messages, draft and pending requests; reloading clears the visit.
 
-M08 implements the [approved Assistant composition](https://app.paper.design/file/01M5VJC7VWD8F9QYARYR43X33M/p-9-0). Normal routes have no reply source: submission immediately shows the designed failure and Retry, without a messaging request, simulated answer or waiting delay. M09 connects live messaging.
+The conversation hook calls `src/modules/assistant/client.ts`, which selects recent history, posts to `/api/assistant` and validates one JSON response. The API route validates input once, constructs `AssistantService` with `OpenAIClient`, awaits a completed answer and returns `{ text }`. Errors use `{ error: { code, message } }`. Zod schemas own the wire contracts; UI messages and dialog phases remain in `src/types/assistant.ts`.
 
-`/test-fixtures/assistant` calls Next.js `connection()` before checking the server-only flag at request time and defaults to 404. Only the exact value `1` renders its test-only host; query parameters can then select a known scenario. Never enable the flag in deployment configuration. Fixture modules and deterministic replies are absent from the normal root Assistant import path. Tests operate the real dialog/controllers with Playwright's clock, using the 3101 host for controlled chunks/failure/late cancellation and 3100 for ordinary integration/isolation.
+The service supplies approved portfolio facts from `src/data/`. The OpenAI adapter owns provider settings and output checks. Configuration stays server-only and is read at request time; builds require no key. Generation uses gpt-6-luna with reasoning none, 800 output tokens, `store: false`, no automatic retries and the SDK's 30-second timeout. The browser also uses a native 30-second request timeout.
 
-After `npm run build`, run `npm run test:e2e -- tests/e2e/assistant` or the full suite. Layout captures and motion recordings are retained with the browser report. The keyboard-bound case simulates VisualViewport geometry; it does not establish physical iOS keyboard behavior or live AI delivery.
+Input limits remain 20 messages, 12,000 total text characters and 4,000 per user question. The 64KiB byte limit is checked after reading the complete body; there is no custom body reader. Oldest turns are dropped without truncating the current question.
+
+Send displays Thinking… and then one complete reply or a safe error notice. Drafting remains possible while waiting; another submission is disabled. There are no Stop, Retry or Latest message controls. A failed request can be submitted again manually. Streaming requires a separate proposal and explicit approval before it can be added.
+
+Configure `OPENAI_API_KEY` through secure deployment tooling; `.env.example` documents the name without a credential. Never expose keys, transcripts or raw provider diagnostics. Keep the existing Vercel endpoint protection in place; this cleanup does not change deployment settings.
+
+For local development, configure `OPENAI_API_KEY` privately in the project root's `.env.local` and restart the dev server. Next.js does not load `.env.example`; keep that tracked template free of credentials.
+
+`npm run test:server` uses the existing Playwright runner with inline fake model/SDK transports. Browser tests use the actual assistant with intercepted JSON responses; there is no fixture application route or second test server. CI and test servers disable real credentials and never make paid calls. Mocked verification does not prove live provider/deployment availability.

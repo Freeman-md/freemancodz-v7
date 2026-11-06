@@ -16,20 +16,11 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
-  webServer: [
-    {
-      command: "npm run start -- --port 3100",
-      url: "http://localhost:3100",
-      reuseExistingServer: false,
-      timeout: 60_000,
-      env: { ASSISTANT_UI_FIXTURES: "0" },
-    },
-    {
-      command: "npm run start -- --port 3101",
-      url: "http://localhost:3101",
-      reuseExistingServer: false,
-      timeout: 60_000,
-      env: { ASSISTANT_UI_FIXTURES: "1" },
-    },
-  ],
+  webServer: {
+    command: "npm run start -- --port 3100",
+    url: "http://localhost:3100",
+    reuseExistingServer: false,
+    timeout: 60_000,
+    env: { OPENAI_API_KEY: "" },
+  },
 });

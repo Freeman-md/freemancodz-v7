@@ -108,6 +108,7 @@ test("later rows reveal without repeating the elapsed introduction", async ({
     name: "/ EXPERIENCE",
     exact: true,
   });
+  await expect(section).toHaveAttribute("data-section-reveal", "");
   await section
     .locator("[data-section-heading]")
     .evaluate((element) =>
@@ -116,6 +117,9 @@ test("later rows reveal without repeating the elapsed introduction", async ({
   const rows = section.getByRole("listitem");
   await expect(rows.first()).toHaveCSS("opacity", "1");
   await expect(rows.last()).toHaveCSS("opacity", "0");
+  await expect(
+    section.locator('[data-section-part="heading"]'),
+  ).toHaveAttribute("data-section-reveal-state", "active");
   const originalHeadingAnimation = await section
     .locator('[data-section-part="heading"]')
     .evaluate((element) => {

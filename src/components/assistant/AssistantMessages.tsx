@@ -1,4 +1,3 @@
-import { ArrowDown } from "lucide-react";
 import type { Ref } from "react";
 import { assistantPresets, assistantWelcome } from "@/data/assistant";
 import type { AssistantMessage } from "@/types/assistant";
@@ -7,11 +6,9 @@ import styles from "./AssistantMessages.module.css";
 type Props = {
   messages: AssistantMessage[];
   submit: (text: string) => void;
-  retry: (id: string) => void;
+  error: string;
   isReplying: boolean;
   transcriptRef: Ref<HTMLDivElement>;
-  showLatest: boolean;
-  latest: () => void;
   messageBaseline: number;
   animateWelcome: boolean;
 };
@@ -19,11 +16,9 @@ type Props = {
 export function AssistantMessages({
   messages,
   submit,
-  retry,
+  error,
   isReplying,
   transcriptRef,
-  showLatest,
-  latest,
   messageBaseline,
   animateWelcome,
 }: Props) {
@@ -81,35 +76,13 @@ export function AssistantMessages({
                         ))}
                   </div>
                 )}
-                {message.status === "waiting" && (
-                  <p className={styles.status}>Thinking…</p>
-                )}
-                {message.status === "stopped" && (
-                  <p className={styles.stopped}>Response stopped</p>
-                )}
-                {message.status === "failed" && (
-                  <div className={styles.failure}>
-                    <p>The reply couldn’t be completed. Try again.</p>
-                    <button
-                      type="button"
-                      disabled={isReplying}
-                      onClick={() => retry(message.id)}
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
               </article>
             ))
           )}
+          {isReplying && <p className={styles.status}>Thinking…</p>}
+          {error && <p className={styles.failure}>{error}</p>}
         </div>
       </div>
-      {showLatest && (
-        <button type="button" className={styles.latest} onClick={latest}>
-          <ArrowDown size={16} strokeWidth={2} aria-hidden="true" />
-          Latest message
-        </button>
-      )}
     </div>
   );
 }

@@ -23,7 +23,10 @@ export function Assistant() {
     messageBaseline,
     animateWelcome,
   } = useAssistantSurface(conversation.messages.length);
-  const transcript = useAssistantTranscript(conversation.messages.length > 0);
+  const transcript = useAssistantTranscript(
+    conversation.messages.length,
+    conversation.isReplying,
+  );
   const isDesktop = useAssistantViewport(element);
 
   return (

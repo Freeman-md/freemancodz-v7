@@ -1,4 +1,4 @@
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { useId, useRef } from "react";
 import styles from "./AssistantComposer.module.css";
 
@@ -8,7 +8,6 @@ type Props = {
   isReplying: boolean;
   isDesktop: boolean;
   submit: () => void;
-  stop: () => void;
 };
 
 export function AssistantComposer({
@@ -17,7 +16,6 @@ export function AssistantComposer({
   isReplying,
   isDesktop,
   submit,
-  stop,
 }: Props) {
   const fieldId = useId();
   const composing = useRef(false);
@@ -57,19 +55,13 @@ export function AssistantComposer({
             }
           }}
         />
-        {isReplying ? (
-          <button type="button" aria-label="Stop response" onClick={stop}>
-            <Square size={20} strokeWidth={2} aria-hidden="true" />
-          </button>
-        ) : (
-          <button
-            type="submit"
-            aria-label="Send message"
-            disabled={!draft.trim()}
-          >
-            <ArrowUp size={20} strokeWidth={2} aria-hidden="true" />
-          </button>
-        )}
+        <button
+          type="submit"
+          aria-label="Send message"
+          disabled={isReplying || !draft.trim()}
+        >
+          <ArrowUp size={20} strokeWidth={2} aria-hidden="true" />
+        </button>
       </div>
     </form>
   );
