@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { completedReply } from "./stream.fixture";
 import { openAssistant } from "./assistant.fixture";
 
 for (const route of ["/", "/work"]) {
@@ -34,7 +35,7 @@ test("visit state survives close, responsive changes, theme and client navigatio
   page,
 }) => {
   await page.route("**/api/assistant", (route) =>
-    route.fulfill({ json: { text: "A complete answer" } }),
+    route.fulfill(completedReply("A complete answer")),
   );
   const dialog = await openAssistant(page);
   await dialog

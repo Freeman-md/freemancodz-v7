@@ -18,6 +18,7 @@ function request(body = JSON.stringify(input), length?: string) {
 
 test.beforeEach(() => {
   process.env.OPENAI_API_KEY = "";
+  process.env.OPENAI_VECTOR_STORE_ID = "";
   globalThis.fetch = async () => {
     throw new Error("Unexpected provider request");
   };
@@ -25,6 +26,7 @@ test.beforeEach(() => {
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
   process.env.OPENAI_API_KEY = "";
+  process.env.OPENAI_VECTOR_STORE_ID = "";
 });
 
 test("invalid requests are rejected before configuration or provider access", async () => {
@@ -66,48 +68,58 @@ test("body size uses encoded content even with an absent or inaccurate header", 
   expect((await POST(request(atLimit))).status).toBe(503);
 });
 
-test("real handler and SDK return one completed JSON response", async () => {
+test("real handler streams text before completion and response cancellation aborts provider", async () => {
   process.env.OPENAI_API_KEY = "fixture-no-network";
+  process.env.OPENAI_VECTOR_STORE_ID = "vs_fixture";
+  let provider: ReadableStreamDefaultController<Uint8Array>;
+  let cancelled = false;
   globalThis.fetch = async () =>
-    Response.json({
-      id: "fixture-response",
-      object: "response",
-      status: "completed",
-      error: null,
-      incomplete_details: null,
-      output: [
-        {
-          type: "message",
-          role: "assistant",
-          content: [
-            {
-              type: "output_text",
-              text: "Full reply 👋\n\nSecond paragraph.",
-              annotations: [],
-            },
-          ],
+    new Response(
+      new ReadableStream({
+        start(controller) {
+          provider = controller;
         },
-      ],
-    });
+        cancel() {
+          cancelled = true;
+        },
+      }),
+      { headers: { "Content-Type": "text/event-stream" } },
+    );
   const response = await POST(request());
   expect(response.status).toBe(200);
-  expect(response.headers.get("content-type")).toContain("application/json");
+  expect(response.headers.get("content-type")).toContain("text/event-stream");
   expect(response.headers.get("cache-control")).toBe("no-store");
-  expect(await response.json()).toEqual({
-    text: "Full reply 👋\n\nSecond paragraph.",
-  });
+  const reader = response.body!.getReader();
+  const first = reader.read();
+  await expect.poll(() => !!provider).toBe(true);
+  provider!.enqueue(
+    new TextEncoder().encode(
+      `data: ${JSON.stringify({ type: "response.output_text.delta", delta: "First 👋\n\nSecond" })}\n\n`,
+    ),
+  );
+  expect(new TextDecoder().decode((await first).value)).toBe(
+    `data: ${JSON.stringify({ type: "delta", text: "First 👋\n\nSecond" })}\n\n`,
+  );
+  await reader.cancel();
+  expect(cancelled).toBe(true);
 });
 
-test("provider errors return a safe HTTP failure without provider diagnostics", async () => {
+test("provider errors emit a safe terminal error without diagnostics", async () => {
   process.env.OPENAI_API_KEY = "fixture-no-network";
+  process.env.OPENAI_VECTOR_STORE_ID = "vs_fixture";
   globalThis.fetch = async () =>
     Response.json(
       { error: { message: "Private provider diagnostics" } },
       { status: 500 },
     );
   const response = await POST(request());
-  expect(response.status).toBe(502);
-  const body = await response.json();
-  expect(body.error.code).toBe("reply_failed");
-  expect(body.error.message).not.toContain("Private");
+  const body = await response.text();
+  expect(body).toContain('"type":"error"');
+  expect(body).toContain('"code":"reply_failed"');
+  expect(body).not.toContain("Private");
+});
+
+test("configured key without store is explicitly unavailable", async () => {
+  process.env.OPENAI_API_KEY = "fixture-no-network";
+  expect((await POST(request())).status).toBe(503);
 });

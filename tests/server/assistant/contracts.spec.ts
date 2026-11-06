@@ -1,12 +1,15 @@
 import { expect, test } from "@playwright/test";
 import {
   assistantErrors,
-  assistantResponseSchema,
+  assistantEventSchema,
   assistantHttpErrorSchema,
   assistantLimits,
   assistantRequestSchema,
 } from "@/modules/assistant/schemas";
-import { selectRecentHistory } from "@/modules/assistant/client";
+import {
+  requestAssistantReply,
+  selectRecentHistory,
+} from "@/modules/assistant/client";
 import type { AssistantMessage } from "@/types/assistant";
 
 test("strict contracts reject unknown fields, roles, empty text, final assistant and every request limit", () => {
@@ -49,15 +52,18 @@ test("strict contracts reject unknown fields, roles, empty text, final assistant
       error: { code: "private", message: "x" },
     }).success,
   ).toBe(false);
-  expect(assistantResponseSchema.parse({ text: user.text })).toEqual({
+  expect(
+    assistantEventSchema.parse({ type: "delta", text: user.text }),
+  ).toEqual({
+    type: "delta",
     text: user.text,
   });
   for (const body of [
-    { text: " " },
-    { text: "ok", extra: true },
+    { type: "delta", text: "" },
+    { type: "complete", sources: [], extra: true },
     { other: "ok" },
   ]) {
-    expect(assistantResponseSchema.safeParse(body).success).toBe(false);
+    expect(assistantEventSchema.safeParse(body).success).toBe(false);
   }
 });
 
@@ -104,4 +110,97 @@ test("history also fits the byte limit when JSON escaping expands text", () => {
     new TextEncoder().encode(JSON.stringify(request)).byteLength,
   ).toBeLessThanOrEqual(assistantLimits.bodyBytes);
   expect(request.messages.at(-1)?.text).toBe(messages.at(-1)?.text);
+});
+
+const originalFetch = globalThis.fetch;
+test.afterEach(() => {
+  globalThis.fetch = originalFetch;
+});
+const messages: AssistantMessage[] = [{ id: "u", role: "user", text: "Hello" }];
+
+test("browser transport decodes fragmented UTF-8 and SSE frames without pacing or whitespace loss", async () => {
+  const text = "  Hello 👋\n\nSecond paragraph  ";
+  const bytes = new TextEncoder().encode(
+    `data: ${JSON.stringify({ type: "delta", text })}\r\n\r\ndata: ${JSON.stringify({ type: "complete", sources: [] })}\n\n`,
+  );
+  globalThis.fetch = async () =>
+    new Response(
+      new ReadableStream({
+        start(controller) {
+          for (const byte of bytes) {
+            controller.enqueue(new Uint8Array([byte]));
+          }
+          controller.close();
+        },
+      }),
+      { headers: { "Content-Type": "text/event-stream" } },
+    );
+  const events: unknown[] = [];
+  await requestAssistantReply(messages, (event) => events.push(event));
+  expect(events).toEqual([
+    { type: "delta", text },
+    { type: "complete", sources: [] },
+  ]);
+});
+
+for (const [name, body] of [
+  ["truncated", 'data: {"type":"delta","text":"partial"}\n\n'],
+  ["malformed", "data: nope\n\n"],
+  ["empty", 'data: {"type":"complete","sources":[]}\n\n'],
+  ["unknown field", 'data: {"type":"delta","text":"ok","extra":true}\n\n'],
+  [
+    "unsafe source",
+    'data: {"type":"delta","text":"ok"}\n\ndata: {"type":"complete","sources":[{"id":"x","title":"x","url":"javascript:alert(1)"}]}\n\n',
+  ],
+  [
+    "terminal failure",
+    'data: {"type":"delta","text":"partial"}\n\ndata: {"type":"error","error":{"code":"reply_failed","message":"Failed"}}\n\n',
+  ],
+]) {
+  test(`browser transport rejects ${name} output`, async () => {
+    globalThis.fetch = async () =>
+      new Response(body, { headers: { "Content-Type": "text/event-stream" } });
+    const events: unknown[] = [];
+    await expect(
+      requestAssistantReply(messages, (event) => events.push(event)),
+    ).rejects.toThrow();
+    expect(events).not.toContainEqual({ type: "complete", sources: [] });
+  });
+}
+
+test("browser transport rejects invalid UTF-8 and cancels abandoned reads", async () => {
+  globalThis.fetch = async () =>
+    new Response(new Uint8Array([0xff]), {
+      headers: { "Content-Type": "text/event-stream" },
+    });
+  await expect(
+    requestAssistantReply(messages, () => undefined),
+  ).rejects.toThrow();
+
+  const controller = new AbortController();
+  const reading = Promise.withResolvers<void>();
+  globalThis.fetch = async (_url, options) =>
+    new Response(
+      new ReadableStream({
+        start(output) {
+          options?.signal?.addEventListener(
+            "abort",
+            () => output.error(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+          reading.resolve();
+        },
+      }),
+      { headers: { "Content-Type": "text/event-stream" } },
+    );
+  const events: unknown[] = [];
+  const result = requestAssistantReply(
+    messages,
+    (event) => events.push(event),
+    controller.signal,
+  );
+  await reading.promise;
+  controller.abort();
+  await expect(result).rejects.toThrow();
+  expect(events).toEqual([]);
 });

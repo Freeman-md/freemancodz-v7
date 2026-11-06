@@ -3,12 +3,14 @@ import type {
   assistantErrorSchema,
   assistantMessageSchema,
   assistantRequestSchema,
-  assistantResponseSchema,
+  assistantEventSchema,
+  assistantSourceSchema,
 } from "./schemas";
 
 export type AssistantWireMessage = z.infer<typeof assistantMessageSchema>;
 export type AssistantRequest = z.infer<typeof assistantRequestSchema>;
-export type AssistantResponse = z.infer<typeof assistantResponseSchema>;
+export type AssistantEvent = z.infer<typeof assistantEventSchema>;
+export type AssistantSource = z.infer<typeof assistantSourceSchema>;
 export type AssistantError = z.infer<typeof assistantErrorSchema>;
 
 export type AssistantGeneration = {
@@ -17,5 +19,8 @@ export type AssistantGeneration = {
 };
 
 export interface AssistantModel {
-  generate(input: AssistantGeneration, signal?: AbortSignal): Promise<string>;
+  generate(
+    input: AssistantGeneration,
+    signal?: AbortSignal,
+  ): AsyncIterable<AssistantEvent>;
 }

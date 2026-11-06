@@ -30,6 +30,8 @@ Open [localhost:3000](http://localhost:3000). Stop the development server before
 
 ESLint catches rule violations; TypeScript checks types; Prettier formats code. They do not prove that a feature behaves correctly. Playwright exercises the production shell in Chromium and WebKit.
 
+`npm run assistant:index` deliberately creates and indexes a new OpenAI store; it requires a securely configured key and is never part of automated verification.
+
 ## File responsibilities
 
 Hooks are grouped by ownership: `src/hooks/home/<section>/` for homepage-only behaviour, `src/hooks/work/` for the collection shared by both routes, and `src/hooks/shared/` for site-wide/reused behaviour. Assistant hooks live together in `src/hooks/shared/assistant/`. Components and their CSS Modules remain in their existing directories.
@@ -61,7 +63,7 @@ Keep component styles in colocated CSS Modules with semantic class names and sha
 
 Use the variables in `src/app/globals.css` by their purpose: `--color-*` for colour roles, `--font-*` for families, paired `--text-*` and `--leading-*` for type sizes and line heights, and `--space-*` for shared spacing. The two foreground whites preserve the approved distinction between general text and Hero/Contact display text.
 
-`--page-gutter` and `--content-max-width` define the content area. `--section-gap` defines the total space between sections; `--section-space` is half that gap, contributed by each adjoining section. Count the spacing once. Contact retains 112px of internal bottom clearance plus the safe area to keep its final links above the existing assistant; no viewport spacer is used.
+`--page-gutter` and `--content-max-width` define the content area. `--section-gap` defines 160px desktop / 96px mobile total space between sections; `--section-space` is half that gap, contributed by each adjoining section. Count the spacing once. Contact retains 112px of internal bottom clearance plus the safe area to keep its final links above the existing assistant; no viewport spacer is used.
 
 The default values are mobile-first, with shared desktop values beginning at `64rem` (1024px at the browser's default root size). Sizes use `rem` and tracking uses `em`; the root font size remains the browser default.
 
@@ -101,16 +103,26 @@ M01 contract version 2 uses inspected representative backdrop captures instead o
 
 The persistent root `Assistant` composes the dialog and focused hooks for conversation, surface/focus, mobile viewport sizing and simple scrolling to new messages. Closing preserves messages, draft and pending requests; reloading clears the visit.
 
-The conversation hook calls `src/modules/assistant/client.ts`, which selects recent history, posts to `/api/assistant` and validates one JSON response. The API route validates input once, constructs `AssistantService` with `OpenAIClient`, awaits a completed answer and returns `{ text }`. Errors use `{ error: { code, message } }`. Zod schemas own the wire contracts; UI messages and dialog phases remain in `src/types/assistant.ts`.
+The conversation hook calls `src/modules/assistant/client.ts`, which selects recent history, posts to `/api/assistant`, decodes fragmented UTF-8/SSE frames and validates application events. The API route validates input once, wires `AssistantService` to `OpenAIClient` and forwards `delta`, `complete` (with sources) or safe terminal `error` events. Pre-stream failures use JSON `{ error: { code, message } }`. Zod owns wire schemas; UI messages remain in `src/types/assistant.ts`.
 
-The service supplies approved portfolio facts from `src/data/`. The OpenAI adapter owns provider settings and output checks. Configuration stays server-only and is read at request time; builds require no key. Generation uses gpt-6-luna with reasoning none, 800 output tokens, `store: false`, no automatic retries and the SDK's 30-second timeout. The browser also uses a native 30-second request timeout.
+The service owns private grounding instructions. `knowledge.ts` derives twelve documents from existing public portfolio records: one per project and one each for Services, Experience, Testimonials and Contact. It also owns deterministic filenames and approved source links. OpenAI file search is the only tool and is required for each answer. Citation annotations must match a filename and file ID in that response's retrieval results before their approved metadata can appear under Sources. Sources identify cited portfolio material; they are not proof of every generated claim. Unknown citations are omitted with a content-free diagnostic.
 
-Input limits remain 20 messages, 12,000 total text characters and 4,000 per user question. The 64KiB byte limit is checked after reading the complete body; there is no custom body reader. Oldest turns are dropped without truncating the current question.
+The adapter owns SDK streaming, citation interpretation and explicit indexing. Configuration is server-only and read at request/command time; builds need no key or store. Generation retains gpt-6-luna, reasoning none, 800 output tokens, `store: false`, disabled retries and 30-second SDK/server/browser limits. There is no artificial text pacing. A provider-confirmed nonempty successful response is required; malformed, incomplete or truncated streams fail. Close/reopen preserves generation; unmount or disconnection cancels it.
 
-Send displays Thinking… and then one complete reply or a safe error notice. Drafting remains possible while waiting; another submission is disabled. There are no Stop, Retry or Latest message controls. A failed request can be submitted again manually. Streaming requires a separate proposal and explicit approval before it can be added.
+Input limits remain 20 messages, 12,000 total text characters and 4,000 per user question. The 64KiB encoded byte limit is checked after buffering the body. Oldest turns are dropped without truncating the current question. Thinking… stays visible until the first text; fragments update one answer without repeated entrance animations or screen-reader announcements. Drafting remains possible while Send is disabled. Failures retain visible partial text and a safe notice, exclude the partial answer from subsequent history, and clear it on the next manual submission. There are no Stop, Retry, Latest message, automatic resubmission or persistence controls.
 
-Configure `OPENAI_API_KEY` through secure deployment tooling; `.env.example` documents the name without a credential. Never expose keys, transcripts or raw provider diagnostics. Keep the existing Vercel endpoint protection in place; this cleanup does not change deployment settings.
+### Index and configure
 
-For local development, configure `OPENAI_API_KEY` privately in the project root's `.env.local` and restart the dev server. Next.js does not load `.env.example`; keep that tracked template free of credentials.
+Configure `OPENAI_API_KEY` securely in the existing OpenAI project. The standalone indexing command uses the process environment, does not load secret files, and requires no previous store ID:
 
-`npm run test:server` uses the existing Playwright runner with inline fake model/SDK transports. Browser tests use the actual assistant with intercepted JSON responses; there is no fixture application route or second test server. CI and test servers disable real credentials and never make paid calls. Mocked verification does not prove live provider/deployment availability.
+```bash
+npm run assistant:index
+```
+
+Node 22 runs the TypeScript entry point directly using type stripping. The command creates a new versioned store, uploads the approved documents, waits for each to finish indexing and prints `Ready: vs_…` only on full success. Failure exits unsuccessfully and prints only created resource IDs needed for manual cleanup. It never activates configuration or deletes prior stores; keep prior stores for manual rollback. Do not run indexing during requests, builds or deployment.
+
+After successful indexing, set the non-secret `OPENAI_VECTOR_STORE_ID` to the ready ID in the existing Vercel project's Preview environment, alongside its existing secret `OPENAI_API_KEY`. The store must belong to a project accessible to that key. Redeploy Preview and verify project/follow-up/services/unknown-fact questions, progressive text and actual cited links. Before the human production release, configure the same ready store ID in Production alongside its existing server-only key, then deploy the merged commit and smoke-test. Missing store configuration returns an explicit unavailable response; no full-corpus fallback exists. Preserve the existing endpoint firewall protection.
+
+`.env.example` documents names/placeholders only. For local Next.js development, configure both values privately and restart the dev server; the indexing command needs the existing key in its process environment. Never expose keys, transcripts or raw provider diagnostics.
+
+`npm run test:server` uses inline fake model/SDK transports. Assistant browser tests use the actual UI and a test-scoped native HTTP stream, holding completion until incremental text is observed; buffered fixtures cover layout only. CI/test servers disable real credentials and never make paid calls or uploads. Mocked tests do not establish live-provider availability. Required verification is `test:server`, `check`, `build`, the focused assistant browser suite and the full browser suite.

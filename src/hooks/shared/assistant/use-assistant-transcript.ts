@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 export function useAssistantTranscript(
   messageCount: number,
   isReplying: boolean,
+  incomingText: string,
 ) {
   const [element, setElement] = useState<HTMLDivElement | null>(null);
 
@@ -10,7 +11,7 @@ export function useAssistantTranscript(
     if (element && messageCount > 0) {
       element.scrollTo({ top: element.scrollHeight });
     }
-  }, [element, messageCount, isReplying]);
+  }, [element, messageCount, isReplying, incomingText]);
 
   return { transcriptRef: setElement };
 }

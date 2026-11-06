@@ -18,3 +18,13 @@ export function getOpenAIConfiguration(): OpenAIConfiguration {
   }
   return configurationSchema.parse({ apiKey: process.env.OPENAI_API_KEY });
 }
+
+export function getAssistantStoreId(): string {
+  if (typeof window !== "undefined") {
+    throw new Error("Assistant configuration is server-only.");
+  }
+  return z
+    .string()
+    .regex(/^vs_[a-zA-Z0-9]+$/)
+    .parse(process.env.OPENAI_VECTOR_STORE_ID);
+}

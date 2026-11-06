@@ -26,6 +26,7 @@ export function Assistant() {
   const transcript = useAssistantTranscript(
     conversation.messages.length,
     conversation.isReplying,
+    conversation.pendingReply?.text ?? "",
   );
   const isDesktop = useAssistantViewport(element);
 
