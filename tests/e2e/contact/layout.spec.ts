@@ -229,3 +229,51 @@ test("Contact hover uses fill/border without displacement and Hero keeps its est
     "1.75",
   );
 });
+
+for (const width of [1440, 390]) {
+  test(`shared section gaps are counted once at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 960 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/");
+    const gap = width >= 1024 ? 160 : 96;
+    const sections = page.locator("main section");
+    const metrics = await sections.evaluateAll((elements) =>
+      elements.map((element) => {
+        const style = getComputedStyle(element);
+        return {
+          name: element.getAttribute("aria-labelledby") ?? element.id,
+          top: parseFloat(style.paddingTop),
+          bottom: parseFloat(style.paddingBottom),
+        };
+      }),
+    );
+    const services = metrics.find(
+      (section) => section.name === "services-title",
+    )!;
+    const experience = metrics.find(
+      (section) => section.name === "experience",
+    )!;
+    const testimonials = metrics.find(
+      (section) => section.name === "testimonials",
+    )!;
+    const contact = metrics.find((section) => section.name === "contact")!;
+    for (const section of [services, experience, testimonials]) {
+      expect(section.top).toBe(gap / 2);
+      expect(section.bottom).toBe(gap / 2);
+    }
+    expect(services.bottom + experience.top).toBe(gap);
+    expect(experience.bottom + testimonials.top).toBe(gap);
+    expect(testimonials.bottom + contact.top).toBe(gap);
+    expect(contact.bottom).toBe(112);
+    await page.locator("#services").scrollIntoViewIfNeeded();
+    await testInfo.attach(`section-spacing-${width}`, {
+      body: await page.screenshot({
+        path: testInfo.outputPath(`section-spacing-${width}.png`),
+        fullPage: true,
+      }),
+      contentType: "image/png",
+    });
+  });
+}

@@ -8,7 +8,10 @@ export function useAssistantConversation() {
   const [draft, setDraft] = useState("");
   const [isReplying, setIsReplying] = useState(false);
   const [error, setError] = useState("");
-  const pending = useRef(false);
+  const [pendingReply, setPendingReply] = useState<AssistantMessage | null>(
+    null,
+  );
+  const pending = useRef<AbortController | null>(null);
   const mounted = useRef(true);
   const nextId = useRef(0);
 
@@ -17,33 +20,55 @@ export function useAssistantConversation() {
       return;
     }
 
-    pending.current = true;
+    const controller = new AbortController();
+    pending.current = controller;
     const id = ++nextId.current;
     const history: AssistantMessage[] = [
       ...messages,
       { id: `user-${id}`, role: "user", text },
     ];
     setMessages(history);
+    setPendingReply(null);
     setDraft("");
     setError("");
     setIsReplying(true);
 
     try {
-      const reply = await requestAssistantReply(history);
-      if (mounted.current) {
-        setMessages([
-          ...history,
-          { id: `reply-${id}`, role: "assistant", text: reply },
-        ]);
-      }
+      let text = "";
+      await requestAssistantReply(
+        history,
+        (event) => {
+          if (!mounted.current || pending.current !== controller) {
+            return;
+          }
+          if (event.type === "delta") {
+            text += event.text;
+            setPendingReply({ id: `reply-${id}`, role: "assistant", text });
+          } else if (event.type === "complete") {
+            setMessages([
+              ...history,
+              {
+                id: `reply-${id}`,
+                role: "assistant",
+                text,
+                sources: event.sources,
+              },
+            ]);
+            setPendingReply(null);
+          }
+        },
+        controller.signal,
+      );
     } catch {
-      if (mounted.current) {
+      if (mounted.current && pending.current === controller) {
         setError(assistantErrors.reply_failed.message);
       }
     } finally {
-      pending.current = false;
-      if (mounted.current) {
-        setIsReplying(false);
+      if (pending.current === controller) {
+        pending.current = null;
+        if (mounted.current) {
+          setIsReplying(false);
+        }
       }
     }
   }
@@ -52,6 +77,8 @@ export function useAssistantConversation() {
     mounted.current = true;
     return () => {
       mounted.current = false;
+      pending.current?.abort();
+      pending.current = null;
     };
   }, []);
 
@@ -64,5 +91,14 @@ export function useAssistantConversation() {
     announcement = "Reply complete";
   }
 
-  return { messages, draft, setDraft, submit, isReplying, error, announcement };
+  return {
+    messages,
+    pendingReply,
+    draft,
+    setDraft,
+    submit,
+    isReplying,
+    error,
+    announcement,
+  };
 }

@@ -62,9 +62,20 @@ export const assistantHttpErrorSchema = z.strictObject({
   error: assistantErrorSchema,
 });
 
-export const assistantResponseSchema = z.strictObject({
-  text: z.string().refine((text) => text.trim().length > 0),
+export const assistantSourceSchema = z.strictObject({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  url: z.url().refine((url) => url.startsWith("https://")),
 });
+
+export const assistantEventSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("delta"), text: z.string().min(1) }),
+  z.strictObject({
+    type: z.literal("complete"),
+    sources: z.array(assistantSourceSchema),
+  }),
+  z.strictObject({ type: z.literal("error"), error: assistantErrorSchema }),
+]);
 
 export const assistantErrors = {
   invalid_request: {

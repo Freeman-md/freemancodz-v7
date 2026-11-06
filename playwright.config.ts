@@ -21,6 +21,6 @@ export default defineConfig({
     url: "http://localhost:3100",
     reuseExistingServer: false,
     timeout: 60_000,
-    env: { OPENAI_API_KEY: "" },
+    env: { OPENAI_API_KEY: "", OPENAI_VECTOR_STORE_ID: "" },
   },
 });

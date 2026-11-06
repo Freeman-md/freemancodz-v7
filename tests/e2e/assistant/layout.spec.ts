@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { completedReply } from "./stream.fixture";
 import { openAssistant } from "./assistant.fixture";
 
 test.use({ video: "on" });
@@ -21,13 +22,24 @@ for (const [width, height, theme, scenario] of [
       theme,
     );
     await page.route("**/api/assistant", (route) =>
-      route.fulfill({
-        json: {
-          text:
-            "Freeman builds interfaces.\n\n" +
+      route.fulfill(
+        completedReply(
+          "Freeman builds interfaces.\n\n" +
             "A readable complete answer. ".repeat(50),
-        },
-      }),
+          [
+            {
+              id: "project-debby",
+              title: "Debby Art & Prints",
+              url: "https://debbyarts.vercel.app/",
+            },
+            {
+              id: "testimonials",
+              title: "Testimonials",
+              url: "https://freemancodz-v7.vercel.app/#testimonials",
+            },
+          ],
+        ),
+      ),
     );
     const dialog = await openAssistant(page);
     if (scenario !== "empty") {
@@ -74,6 +86,18 @@ for (const [width, height, theme, scenario] of [
         (await transcript.boundingBox())!.y,
       );
     } else {
+      const sources = dialog.getByRole("group", { name: "Sources" });
+      await expect(sources.getByRole("link")).toHaveCount(2);
+      for (const link of await sources.getByRole("link").all()) {
+        await expect(link).toHaveAttribute("target", "_blank");
+        await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+        await link.focus();
+        await page.keyboard.press("ArrowRight");
+        await expect(link).toHaveCSS("outline-style", "solid");
+        const bounds = (await link.boundingBox())!;
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+      }
       const reply = dialog
         .getByRole("article", { name: "Assistant", exact: true })
         .first();

@@ -1,10 +1,12 @@
 import type { Ref } from "react";
 import { assistantPresets, assistantWelcome } from "@/data/assistant";
 import type { AssistantMessage } from "@/types/assistant";
+import { AssistantSources } from "./AssistantSources";
 import styles from "./AssistantMessages.module.css";
 
 type Props = {
   messages: AssistantMessage[];
+  pendingReply: AssistantMessage | null;
   submit: (text: string) => void;
   error: string;
   isReplying: boolean;
@@ -15,6 +17,7 @@ type Props = {
 
 export function AssistantMessages({
   messages,
+  pendingReply,
   submit,
   error,
   isReplying,
@@ -51,35 +54,42 @@ export function AssistantMessages({
               </div>
             </div>
           ) : (
-            messages.map((message, index) => (
-              <article
-                key={message.id}
-                className={
-                  message.role === "user" ? styles.user : styles.assistant
-                }
-                data-arrive={
-                  message.role === "user" && index >= messageBaseline
-                }
-                aria-label={message.role === "user" ? "You" : "Assistant"}
-              >
-                <div className={styles.author}>
-                  {message.role === "user" ? "You" : "Assistant"}
-                </div>
-                {message.text && (
-                  <div className={styles.body}>
-                    {message.role === "user" && <p>{message.text}</p>}
-                    {message.role === "assistant" &&
-                      message.text
-                        .split("\n\n")
-                        .map((paragraph, paragraphIndex) => (
-                          <p key={paragraphIndex}>{paragraph}</p>
-                        ))}
+            [...messages, ...(pendingReply ? [pendingReply] : [])].map(
+              (message, index) => (
+                <article
+                  key={message.id}
+                  className={
+                    message.role === "user" ? styles.user : styles.assistant
+                  }
+                  data-arrive={
+                    message.role === "user" && index >= messageBaseline
+                  }
+                  aria-label={message.role === "user" ? "You" : "Assistant"}
+                >
+                  <div className={styles.author}>
+                    {message.role === "user" ? "You" : "Assistant"}
                   </div>
-                )}
-              </article>
-            ))
+                  {message.text && (
+                    <div className={styles.body}>
+                      {message.role === "user" && <p>{message.text}</p>}
+                      {message.role === "assistant" &&
+                        message.text
+                          .split("\n\n")
+                          .map((paragraph, paragraphIndex) => (
+                            <p key={paragraphIndex}>{paragraph}</p>
+                          ))}
+                    </div>
+                  )}
+                  {message.sources && (
+                    <AssistantSources sources={message.sources} />
+                  )}
+                </article>
+              ),
+            )
           )}
-          {isReplying && <p className={styles.status}>Thinking…</p>}
+          {isReplying && !pendingReply?.text && (
+            <p className={styles.status}>Thinking…</p>
+          )}
           {error && <p className={styles.failure}>{error}</p>}
         </div>
       </div>

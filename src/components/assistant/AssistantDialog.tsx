@@ -81,6 +81,7 @@ export function AssistantDialog({
           </header>
           <AssistantMessages
             messages={conversation.messages}
+            pendingReply={conversation.pendingReply}
             submit={conversation.submit}
             error={conversation.error}
             isReplying={conversation.isReplying}

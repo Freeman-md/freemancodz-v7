@@ -162,10 +162,10 @@ for (const viewport of [
       ).toBe(viewport.width);
       const previous = (await page.locator("#services").boundingBox())!;
       expect(bounds.y - previous.y - previous.height).toBeCloseTo(0, 0);
-      await expect(section).toHaveCSS("padding-top", desktop ? "48px" : "32px");
+      await expect(section).toHaveCSS("padding-top", desktop ? "80px" : "48px");
       await expect(section).toHaveCSS(
         "padding-bottom",
-        desktop ? "48px" : "32px",
+        desktop ? "80px" : "48px",
       );
       await testInfo.attach(`experience-${viewport.width}-${theme}`, {
         body: await section.screenshot({

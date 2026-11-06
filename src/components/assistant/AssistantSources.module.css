@@ -1,0 +1,26 @@
+.sources {
+  margin-top: 16px;
+  color: var(--assistant-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.sources p {
+  margin: 0 0 6px;
+}
+.sources ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sources li {
+  min-width: 0;
+  max-width: 100%;
+}
+.sources a {
+  color: var(--assistant-text);
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}

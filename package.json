@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "check": "npm run format:check && npm run lint && npm run typecheck",
     "test:e2e": "playwright test",
+    "assistant:index": "node --experimental-strip-types scripts/index-assistant-knowledge.mts",
     "test:server": "playwright test --config=playwright.server.config.ts"
   },
   "dependencies": {
